@@ -72,6 +72,7 @@ class BreathingViewModel {
 		}
 	}
 	
+	
 	var isReminder: Bool = false
 	var isVibration: Bool = true
 	
