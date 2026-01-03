@@ -15,7 +15,7 @@ struct SettingsView: View {
 	@Bindable var modelData: BreathingViewModel
 	var healthkitManager: HealthKitManager
 	
-	@State var showSettingsView: Bool
+	@Binding var showSettingsView: Bool
 	@State var showTimePickerModal = false
 	
 	@AppStorage("reduce_haptics") var reduceHaptics = false
@@ -25,19 +25,19 @@ struct SettingsView: View {
 //	@AppStorage("save_healthkit") var saveToAppleHealth = healthkitManager.isHealthKitAvailable()
 	
 	var body: some View {
-		NavigationView {
+		NavigationStack {
 			List {
 				Section(header: Text("Paramètres")) {
 					Stepper(value: $tenseTime, in: 1...30) {
 						HStack {
 							ZStack {
 								Image(systemName: "wave.3.left")
-									.foregroundColor(.white)
+									.foregroundStyle(.white)
 									.font(.callout)
 							}
 							.frame(width: 28, height: 28)
 							.background(Color.blue)
-							.cornerRadius(6)
+							.clipShape(.rect(cornerRadius: 6))
 							Text("Contraction: \(tenseTime) \(tenseTime == 1 ? "seconde" : "secondes")")
 						}
 					}
@@ -46,12 +46,12 @@ struct SettingsView: View {
 						HStack {
 							ZStack {
 								Image(systemName: "wave.3.right")
-									.foregroundColor(.white)
+									.foregroundStyle(.white)
 									.font(.callout)
 							}
 							.frame(width: 28, height: 28)
 							.background(Color.blue)
-							.cornerRadius(6)
+							.clipShape(.rect(cornerRadius: 6))
 							Text("Relachement: \(relaxTime) \(relaxTime == 1 ? "seconde" : "secondes")")
 						}
 					}
@@ -60,12 +60,12 @@ struct SettingsView: View {
 						HStack {
 							ZStack {
 								Image(systemName: "repeat")
-									.foregroundColor(.white)
+									.foregroundStyle(.white)
 									.font(.callout)
 							}
 							.frame(width: 28, height: 28)
 							.background(Color.green)
-							.cornerRadius(6)
+							.clipShape(.rect(cornerRadius: 6))
 							Text("\(totalReps) \(totalReps == 1 ? "répétition" : "répétitions")")
 						}
 					}
@@ -75,12 +75,12 @@ struct SettingsView: View {
 							HStack {
 								ZStack {
 									Image(systemName: "iphone.radiowaves.left.and.right")
-										.foregroundColor(.white)
+										.foregroundStyle(.white)
 										.font(.callout)
 								}
 								.frame(width: 28, height: 28)
 								.background(Color.orange)
-								.cornerRadius(6)
+								.clipShape(.rect(cornerRadius: 6))
 								Text("Désactiver les vibration")
 							}
 						}
@@ -91,7 +91,7 @@ struct SettingsView: View {
 							isOn: $modelData.isReminder,
 							label: {
 								Label("Rappels", systemImage: "clock")
-									.foregroundColor(.white)
+									.foregroundStyle(.white)
 							}
 						)
 					}
@@ -118,12 +118,12 @@ struct SettingsView: View {
 //							HStack {
 //								ZStack {
 //									Image(systemName: "heart.fill")
-//										.foregroundColor(.white)
+//										.foregroundStyle(.white)
 //										.font(.callout)
 //								}
 //								.frame(width: 28, height: 28)
 //								.background(Color.red)
-//								.cornerRadius(6)
+//								.clipShape(.rect(cornerRadius: 6))
 //								Text("Save to Apple Health")
 //							}
 //						}
@@ -140,22 +140,24 @@ struct SettingsView: View {
 			}
 			.listStyle(GroupedListStyle())
 			.navigationTitle("Paramètres")
-			.navigationBarItems(
-				trailing: Button(
-					action: {
-						self.showSettingsView = false
+			.toolbar {
+				ToolbarItem(placement: .topBarTrailing) {
+					Button(
+						action: {
+							self.showSettingsView = false
+						}
+					) {
+						Text("Terminé")
+							.bold()
 					}
-				) {
-					Text("Terminé")
-						.bold()
 				}
-			)
+			}
 		}
 	}
 }
 
 #Preview {
-	SettingsView(modelData: BreathingViewModel(), healthkitManager: HealthKitManager(), showSettingsView: true)
+	SettingsView(modelData: BreathingViewModel(), healthkitManager: HealthKitManager(), showSettingsView: .constant(true))
 		.environment(BreathingViewModel())
 		.preferredColorScheme(.dark)
 }

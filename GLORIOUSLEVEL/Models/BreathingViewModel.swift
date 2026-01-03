@@ -26,14 +26,20 @@ enum BreathingPlan: String, CaseIterable {
 		}
 	}
 	
-	var breathingTime: [String: Int] {
+	struct BreathingTimes {
+		let inhale: Int
+		let hold: Int
+		let reps: Int
+	}
+
+	var details: BreathingTimes {
 		switch self {
 		case .mwh:
-			return ["defaultInhaleTime": 5, "defaultHoldTime": 60, "defaultTotalReps": 30]
+			return BreathingTimes(inhale: 5, hold: 60, reps: 30)
 		case .m365:
-			return ["defaultInhaleTime": 5, "defaultHoldTime": 0, "defaultTotalReps": 6]
+			return BreathingTimes(inhale: 5, hold: 0, reps: 6)
 		case .m4x4:
-			return ["defaultInhaleTime": 5, "defaultHoldTime": 5, "defaultTotalReps": 10]
+			return BreathingTimes(inhale: 5, hold: 5, reps: 10)
 		}
 	}
 }
@@ -52,6 +58,7 @@ enum BreathingState: CaseIterable {
 }
 
 @Observable
+@MainActor
 class BreathingViewModel {
 	
 	var breathingState: BreathingState = .initial
@@ -79,21 +86,21 @@ class BreathingViewModel {
 	var reminders: [String] = []
 	
 	var inhaleTime : Int {
-		breathingPlan.breathingTime["defaultInhaleTime"]!
+		breathingPlan.details.inhale
 	}
 	
 	var holdTime : Int {
-		breathingPlan.breathingTime["defaultHoldTime"]!
+		breathingPlan.details.hold
 	}
 	
 	var cycleNumber : Int {
-		breathingPlan.breathingTime["defaultTotalReps"]!
+		breathingPlan.details.reps
 	}
 	
 	var timeRemaining = 0
 	var cycleRemaining = 0
 	
-	var timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+	private var timerTask: Task<Void, Never>?
 	
 	private(set) var elapsedTime: Double = 0.0
 	private(set) var progress: Double = 0.0
@@ -143,11 +150,19 @@ class BreathingViewModel {
 	}
 	
 	func startTimer() {
-		self.timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+		stopTimer()
+		timerTask = Task { [weak self] in
+			while !Task.isCancelled {
+				try? await Task.sleep(for: .seconds(1))
+				if Task.isCancelled { break }
+				await self?.trackBreathing()
+			}
+		}
 	}
 	
 	func stopTimer() {
-		self.timer.upstream.connect().cancel()
+		timerTask?.cancel()
+		timerTask = nil
 	}
 	
 	func trackBreathing() {
@@ -277,7 +292,11 @@ class BreathingViewModel {
 	}
 	
 	func saveToHealthKit() {
-		HKManager.saveMindfulSession(startTime: Date.init(timeIntervalSinceNow: Double(-mindfulSessionDuration)), endTime: Date())
+		let startTime = Date(timeIntervalSinceNow: Double(-mindfulSessionDuration))
+		let endTime = Date()
+		Task {
+			await HKManager.saveMindfulSession(startTime: startTime, endTime: endTime)
+		}
 		mindfulSessionDuration = 0
 	}
 }
