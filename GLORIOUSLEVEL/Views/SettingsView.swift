@@ -29,7 +29,7 @@ struct SettingsView: View {
 	var body: some View {
 		NavigationStack {
 			List {
-				Section(header: Text("Paramètres")) {
+				Section {
 					Stepper(value: $tenseTime, in: 1...30) {
 						HStack {
 							ZStack {
@@ -82,67 +82,58 @@ struct SettingsView: View {
                 } header: {
                     Text("Personnalisation")
                 }
-					
-					if CHHapticEngine.capabilitiesForHardware().supportsHaptics {
-						Toggle(isOn: $reduceHaptics) {
-							HStack {
-								ZStack {
-									Image(systemName: "iphone.radiowaves.left.and.right")
-										.foregroundStyle(.white)
-										.font(.callout)
-								}
-								.frame(width: 28, height: 28)
-								.background(Color.orange)
-								.clipShape(.rect(cornerRadius: 6))
-								Text("Désactiver les vibration")
+				
+				if CHHapticEngine.capabilitiesForHardware().supportsHaptics {
+					Toggle(isOn: $reduceHaptics) {
+						HStack {
+							ZStack {
+								Image(systemName: "iphone.radiowaves.left.and.right")
+									.foregroundStyle(.white)
+									.font(.callout)
 							}
+							.frame(width: 28, height: 28)
+							.background(Color.orange)
+							.clipShape(.rect(cornerRadius: 6))
+							Text("Désactiver les vibration")
 						}
 					}
-					
-					HStack {
-						Toggle(
-							isOn: $notificationManager.isReminder,
-							label: {
-								Label("Rappels", systemImage: "clock")
-									.foregroundStyle(.white)
-							}
-						)
-                        .onChange(of: notificationManager.isReminder) { _, newValue in
-                            if newValue {
-                                Task {
-                                    await notificationManager.requestPermission()
-                                    notificationManager.scheduleNotification()
-                                }
-                            } else {
-                                notificationManager.cancelNotification()
-                            }
-                        }
-					}
-					
-                    if notificationManager.isReminder {
-                        ForEach(notificationManager.reminders, id: \.self) { reminder in
-                            Text(reminder)
-                        }
-                        .onDelete { indexSet in
-                            notificationManager.reminders.remove(atOffsets: indexSet)
-                            notificationManager.scheduleNotification()
-                        }
-
-                        Button(action: {
-                            self.showTimePickerModal.toggle()
-                        }, label: {
-                            Text("Ajouter un rappel")
-                        })
-                    }
-					
-					Button(action: {
-						tenseTime = TimeConstants.defaultTensionTime
-						relaxTime = TimeConstants.defaultRelaxTime
-						totalReps = TimeConstants.defaultTotalReps
-					}) {
-						Text("Réinitialiser")
-					}
 				}
+				
+				HStack {
+					Toggle(
+						isOn: $notificationManager.isReminder,
+						label: {
+							Label("Rappels", systemImage: "clock")
+								.foregroundStyle(.white)
+						}
+					)
+                    .onChange(of: notificationManager.isReminder) { _, newValue in
+                        if newValue {
+                            Task {
+                                await notificationManager.requestPermission()
+                                notificationManager.scheduleNotification()
+                            }
+                        } else {
+                            notificationManager.cancelNotification()
+                        }
+                    }
+				}
+				
+                if notificationManager.isReminder {
+                    ForEach(notificationManager.reminders, id: \.self) { reminder in
+                        Text(reminder)
+                    }
+                    .onDelete { indexSet in
+                        notificationManager.reminders.remove(atOffsets: indexSet)
+                        notificationManager.scheduleNotification()
+                    }
+
+                    Button(action: {
+                        self.showTimePickerModal.toggle()
+                    }, label: {
+                        Text("Ajouter un rappel")
+                    })
+                }
 				
 				if healthkitManager.isHealthKitAvailable() {
 					Section(footer: Text("The duration of each session will be saved in Apple Health as Mindful Minutes. If access has been previously revoked, this toggle will have no effect. Access will need to be granted through Settings > Privacy > Inhale.")) {
@@ -209,3 +200,4 @@ struct SettingsView: View {
 		.environment(BreathingViewModel())
 		.preferredColorScheme(.dark)
 }
+
