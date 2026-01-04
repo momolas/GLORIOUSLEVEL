@@ -99,10 +99,8 @@ enum BreathingState: CaseIterable {
 @MainActor
 class BreathingViewModel {
 	
-	var breathingState: BreathingState = .initial
 	var breathingPlan: BreathingPlan = .m365
 	var currentState: BreathingState = .initial
-	var previousState: BreathingState = .initial
 	
 	var breathingMessage: String {
 		switch currentState {
@@ -130,9 +128,6 @@ class BreathingViewModel {
                 return "Bloquez !"
 		}
 	}
-	
-	
-	var isVibration: Bool = true
 	
 	var inhaleTime : Int {
 		breathingPlan.details.inhale
@@ -251,73 +246,8 @@ class BreathingViewModel {
 			sendHeavyFeedback()
 			
 			switch breathingPlan {
-			case .m4x4, .nox, .recovery: // Same cycle structure: Inhale -> HoldFull -> Exhale -> HoldEmpty
-                // Note: recovery has holdFull=0, so it will skip efficiently or we can specific logic.
-                // If holdFullTime is 0, we can just transition immediately?
-                // The timer tick is 1s. If duration is 0, we should probably skip that state.
-                // But for simplicity, let's let the generic state machine handle it if possible,
-                // or just rely on the fact that if duration is 0, getDuration returns 0, but we just set timeRemaining to it.
-                // Wait, if timeRemaining is set to 0, on next tick it fires immediately?
-                // trackBreathing is called every second. If timeRemaining becomes 0, we switch state.
-                // We need to handle 0 duration states gracefully.
-                // However, let's explicitly handle it here for clarity.
-
-				switch currentState {
-				case .inhaling:
-                    if holdFullTime > 0 {
-                        currentState = .holdFull
-                    } else {
-                        currentState = .exhaling
-                    }
-				case .holdFull:
-                    currentState = .exhaling
-				case .exhaling:
-                    if holdEmptyTime > 0 {
-                        currentState = .holdEmpty
-                    } else {
-                        cycleRemaining -= 1
-                        if cycleRemaining == 0 {
-                            currentState = .initial
-                            stopTimer()
-                            sendHeavyFeedback()
-                            return
-                        } else {
-                            currentState = .inhaling
-                        }
-                    }
-				case .holdEmpty:
-                    cycleRemaining -= 1
-                    if cycleRemaining == 0 {
-                        currentState = .initial
-                        stopTimer()
-                        sendHeavyFeedback()
-                        return
-                    } else {
-                        currentState = .inhaling
-                    }
-				case .initial:
-					return
-                default: break
-				}
-				
-			case .m365, .light:
-				switch currentState {
-				case .inhaling:
-					currentState = .exhaling
-				case .exhaling:
-					cycleRemaining -= 1
-					if cycleRemaining == 0 {
-						currentState = .initial
-						stopTimer()
-						sendHeavyFeedback()
-						return
-					} else {
-						currentState = .inhaling
-					}
-				case .initial:
-					return
-                default: break
-				}
+			case .m4x4, .nox, .recovery, .m365, .light:
+                advanceState()
 				
 			case .mwh:
                 // Inhale -> Exhale -> (repeat) -> HoldEmpty (long) -> Finish
@@ -396,6 +326,40 @@ class BreathingViewModel {
 		}
 		mindfulSessionDuration = 0
 	}
+
+    private func advanceState() {
+        switch currentState {
+        case .inhaling:
+            if holdFullTime > 0 {
+                currentState = .holdFull
+            } else {
+                currentState = .exhaling
+            }
+        case .holdFull:
+            currentState = .exhaling
+        case .exhaling:
+            if holdEmptyTime > 0 {
+                currentState = .holdEmpty
+            } else {
+                completeCycle()
+            }
+        case .holdEmpty:
+            completeCycle()
+        default:
+            break
+        }
+    }
+
+    private func completeCycle() {
+        cycleRemaining -= 1
+        if cycleRemaining == 0 {
+            currentState = .initial
+            stopTimer()
+            sendHeavyFeedback()
+        } else {
+            currentState = .inhaling
+        }
+    }
 
 	@MainActor deinit {
 		timerTask?.cancel()
