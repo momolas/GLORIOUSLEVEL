@@ -1,5 +1,5 @@
 //
-//  SwiftUIView.swift
+//  HeartbeatView.swift
 //  GLORIOUSLEVEL
 //
 //  Created by Mo on 11/10/2022.
@@ -8,7 +8,7 @@
 import SwiftUI
 import HealthKit
 
-struct ContentView: View {
+struct HeartbeatView: View {
 	@State var labelText = "Get Data"
 	@State var flag = false
 	
@@ -28,11 +28,11 @@ struct ContentView: View {
 			
 			Button(action: {
 				if flag {
-					labelText = "Get Data"
+					labelText = "Données récupérées"
 					flag = false
 				} else {
 					if HKHealthStore.isHealthDataAvailable() {
-						labelText = "Succeeded!"
+						labelText = "Succès !"
 						healthStore.requestAuthorization(toShare: nil, read: allTypes) { (success, error) in
 							let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
 							let query = HKSampleQuery(sampleType: HKSeriesType.heartbeat(), predicate: nil, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { (_, samples, _) in
@@ -49,22 +49,23 @@ struct ContentView: View {
 							healthStore.execute(query)
 						}
 					} else {
-						labelText = "Unavailabe"
+						labelText = "Indisponible"
 					}
 					flag = true
 				}
 			}) {
-				Text("Button")
-					.font(.largeTitle)
+				Text("Charger les données")
+					.font(.title3)
+					.bold()
 					.padding(.horizontal, 24)
 					.padding(.vertical, 10)
 					.background(.thinMaterial)
-					.cornerRadius(5)
+					.clipShape(.rect(cornerRadius: 5))
 			}
 		}
 	}
 }
 
 #Preview {
-	ContentView(labelText: "Get Data", flag: false)
+	HeartbeatView(labelText: "Get Data", flag: false)
 }
