@@ -15,6 +15,8 @@ enum BreathingPlan: String, CaseIterable {
 	case m365 = "365"
 	case m4x4 = "4x4"
     case nox = "NOx"
+    case recovery = "Recovery"
+    case light = "Light"
 	
 	var description: String {
 		switch self {
@@ -26,6 +28,10 @@ enum BreathingPlan: String, CaseIterable {
 			return "Méthode 4x4"
         case .nox:
             return "Méthode NOx"
+        case .recovery:
+            return "Buteyko Récupération"
+        case .light:
+            return "Buteyko Léger"
 		}
 	}
 	
@@ -54,6 +60,12 @@ enum BreathingPlan: String, CaseIterable {
         case .nox:
             // NOx: Inhale 4, Hold 4, Exhale 6, Hold 2.
             return BreathingTimes(inhale: 4, holdFull: 4, exhale: 6, holdEmpty: 2, reps: 6)
+        case .recovery:
+            // Recovery: Inhale 5, Exhale 5 (Relaxed breathing) -> Hold 5 (Pinch nose).
+            return BreathingTimes(inhale: 5, holdFull: 0, exhale: 5, holdEmpty: 5, reps: 20)
+        case .light:
+            // Light: Inhale 4, Exhale 6. Gentle reduced breathing.
+            return BreathingTimes(inhale: 4, holdFull: 0, exhale: 6, holdEmpty: 0, reps: 30)
 		}
 	}
 }
@@ -97,13 +109,22 @@ class BreathingViewModel {
 			case .initial:
 				return "Commençons !"
 			case .inhaling:
+                if breathingPlan == .light || breathingPlan == .recovery {
+                    return "Inspirez (Normal)"
+                }
 				return "Inspirez"
 			case .exhaling:
                 if breathingPlan == .nox {
                     return "Expirez (Mmm)"
                 }
+                if breathingPlan == .light || breathingPlan == .recovery {
+                    return "Expirez (Normal)"
+                }
 				return "Expirez"
 			case .holdFull, .holdEmpty:
+                if breathingPlan == .recovery && currentState == .holdEmpty {
+                    return "Pincez le nez !"
+                }
 				return "Bloquez !"
             case .holding: // Legacy fallback if needed, but I removed it from enum
                 return "Bloquez !"
@@ -230,14 +251,40 @@ class BreathingViewModel {
 			sendHeavyFeedback()
 			
 			switch breathingPlan {
-			case .m4x4, .nox: // Same cycle structure: Inhale -> HoldFull -> Exhale -> HoldEmpty
+			case .m4x4, .nox, .recovery: // Same cycle structure: Inhale -> HoldFull -> Exhale -> HoldEmpty
+                // Note: recovery has holdFull=0, so it will skip efficiently or we can specific logic.
+                // If holdFullTime is 0, we can just transition immediately?
+                // The timer tick is 1s. If duration is 0, we should probably skip that state.
+                // But for simplicity, let's let the generic state machine handle it if possible,
+                // or just rely on the fact that if duration is 0, getDuration returns 0, but we just set timeRemaining to it.
+                // Wait, if timeRemaining is set to 0, on next tick it fires immediately?
+                // trackBreathing is called every second. If timeRemaining becomes 0, we switch state.
+                // We need to handle 0 duration states gracefully.
+                // However, let's explicitly handle it here for clarity.
+
 				switch currentState {
 				case .inhaling:
-					currentState = .holdFull
+                    if holdFullTime > 0 {
+                        currentState = .holdFull
+                    } else {
+                        currentState = .exhaling
+                    }
 				case .holdFull:
                     currentState = .exhaling
 				case .exhaling:
-					currentState = .holdEmpty
+                    if holdEmptyTime > 0 {
+                        currentState = .holdEmpty
+                    } else {
+                        cycleRemaining -= 1
+                        if cycleRemaining == 0 {
+                            currentState = .initial
+                            stopTimer()
+                            sendHeavyFeedback()
+                            return
+                        } else {
+                            currentState = .inhaling
+                        }
+                    }
 				case .holdEmpty:
                     cycleRemaining -= 1
                     if cycleRemaining == 0 {
@@ -253,7 +300,7 @@ class BreathingViewModel {
                 default: break
 				}
 				
-			case .m365:
+			case .m365, .light:
 				switch currentState {
 				case .inhaling:
 					currentState = .exhaling
