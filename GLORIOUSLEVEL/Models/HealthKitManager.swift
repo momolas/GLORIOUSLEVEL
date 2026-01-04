@@ -34,7 +34,7 @@ class HealthKitManager {
 	func getAuthorization() async {
 		guard let healthStore else { return }
 		do {
-			try await healthStore.requestAuthorization(toShare: Set([writeType]), read: nil)
+			try await healthStore.requestAuthorization(toShare: Set([writeType]), read: allType)
 			// print("Authorization requested")
 		} catch {
 			// print("Error requesting authorization: \(error)")
