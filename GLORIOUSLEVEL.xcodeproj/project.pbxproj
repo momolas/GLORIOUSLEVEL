@@ -16,8 +16,8 @@
 		CD3B633A28EDC3800046373F /* LaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3B633928EDC3800046373F /* LaunchView.swift */; };
 		CD3B633C28EDE8B40046373F /* ProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3B633B28EDE8B40046373F /* ProgressView.swift */; };
 		CD7CEDE02B03FBD400776270 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD7CEDDF2B03FBD400776270 /* NotificationManager.swift */; };
+		CD84C8892F0AA98D00A08C84 /* HeartbeatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD84C8882F0AA98C00A08C84 /* HeartbeatView.swift */; };
 		CDB21EC328F2F3B9000B6464 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB21EC228F2F3B9000B6464 /* HealthKitManager.swift */; };
-		CDB21EC528F553EE000B6464 /* HearthbeatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB21EC428F553EE000B6464 /* HearthbeatView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,8 +32,8 @@
 		CD3B633928EDC3800046373F /* LaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchView.swift; sourceTree = "<group>"; };
 		CD3B633B28EDE8B40046373F /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
 		CD7CEDDF2B03FBD400776270 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		CD84C8882F0AA98C00A08C84 /* HeartbeatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartbeatView.swift; sourceTree = "<group>"; };
 		CDB21EC228F2F3B9000B6464 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
-		CDB21EC428F553EE000B6464 /* HearthbeatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearthbeatView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,10 +87,10 @@
 		CD3B633228EDAC7E0046373F /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				CD84C8882F0AA98C00A08C84 /* HeartbeatView.swift */,
 				CD3B632528EDAC730046373F /* BreathingView.swift */,
 				CD3B633928EDC3800046373F /* LaunchView.swift */,
 				CD3B633B28EDE8B40046373F /* ProgressView.swift */,
-				CDB21EC428F553EE000B6464 /* HearthbeatView.swift */,
 				CD0B029029708FC5007145B4 /* SettingsView.swift */,
 			);
 			path = Views;
@@ -134,7 +134,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1400;
-				LastUpgradeCheck = 1620;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					CD3B631F28EDAC730046373F = {
 						CreatedOnToolsVersion = 14.0;
@@ -178,13 +178,13 @@
 			files = (
 				CD3B632628EDAC730046373F /* BreathingView.swift in Sources */,
 				CD0B029129708FC5007145B4 /* SettingsView.swift in Sources */,
-				CDB21EC528F553EE000B6464 /* HearthbeatView.swift in Sources */,
 				CD7CEDE02B03FBD400776270 /* NotificationManager.swift in Sources */,
 				CDB21EC328F2F3B9000B6464 /* HealthKitManager.swift in Sources */,
 				CD3B633A28EDC3800046373F /* LaunchView.swift in Sources */,
 				CD3B633C28EDE8B40046373F /* ProgressView.swift in Sources */,
 				CD3B632428EDAC730046373F /* GLORIOUSLEVELApp.swift in Sources */,
 				CD3B633828EDC33C0046373F /* BreathingViewModel.swift in Sources */,
+				CD84C8892F0AA98D00A08C84 /* HeartbeatView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -226,6 +226,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = X8SJ59XXC8;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -246,6 +247,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -286,6 +288,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = X8SJ59XXC8;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -299,6 +302,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 			};
@@ -314,9 +318,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"GLORIOUSLEVEL/Preview Content\"";
-				DEVELOPMENT_TEAM = X8SJ59XXC8;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Your workout data will be used to suggest";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Your workout data will be used to suggest";
@@ -331,7 +336,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
@@ -358,9 +363,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"GLORIOUSLEVEL/Preview Content\"";
-				DEVELOPMENT_TEAM = X8SJ59XXC8;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Your workout data will be used to suggest";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Your workout data will be used to suggest";
@@ -375,7 +381,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;

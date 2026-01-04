@@ -191,7 +191,7 @@ class BreathingViewModel {
 			while !Task.isCancelled {
 				try? await Task.sleep(until: nextTick, clock: .continuous)
 				if Task.isCancelled { break }
-				await self?.trackBreathing()
+				self?.trackBreathing()
 				nextTick += interval
 
 				let now = ContinuousClock.now
@@ -343,7 +343,8 @@ class BreathingViewModel {
 		mindfulSessionDuration = 0
 	}
 
-	deinit {
+	@MainActor deinit {
 		timerTask?.cancel()
 	}
 }
+
