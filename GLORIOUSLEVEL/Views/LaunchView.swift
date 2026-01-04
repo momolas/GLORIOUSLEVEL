@@ -19,6 +19,8 @@ struct LaunchView: View {
                 
                 Text("PAINFULDAY")
                     .font(.largeTitle)
+					.fontWeight(.light)
+					.fontDesign(.rounded)
                 
                 Text("Une application pour faire des exercices de respiration")
                     .font(.caption)
