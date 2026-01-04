@@ -10,7 +10,6 @@ import SwiftUI
 struct ProgressView: View {
 	
 	var breathingViewModel: BreathingViewModel
-	let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 	
 	var body: some View {
 		
@@ -26,15 +25,15 @@ struct ProgressView: View {
 			
 			Circle()
 				.frame(width: 300, height: 300, alignment: .center)
-				.foregroundColor(Color(white: 0.15))
+				.foregroundStyle(Color(white: 0.15))
 			
 			Circle()
 				.frame(width: 100, height: 100, alignment: .center)
-				.foregroundColor(Color(white: 0.3))
+				.foregroundStyle(Color(white: 0.3))
 				.scaleEffect(breathingViewModel.getScale(state: breathingViewModel.currentState))
 				.animation(.easeInOut(duration: Double(breathingViewModel.currentState == BreathingState.initial ? 3 : breathingViewModel.getDuration(state: breathingViewModel.currentState))), value: breathingViewModel.getScale(state: breathingViewModel.currentState))
 			
-			Text("\(breathingViewModel.timeRemaining)")
+			Text(breathingViewModel.timeRemaining, format: .number)
 				.font(.system(size: 48, weight: .semibold))
 			
 		}
@@ -42,10 +41,8 @@ struct ProgressView: View {
 	}
 }
 
-struct ProgressView_Previews: PreviewProvider {
-	static var previews: some View {
-		ProgressView(breathingViewModel: BreathingViewModel())
-			.preferredColorScheme(.dark)
-			.environment(BreathingViewModel())
-	}
+#Preview {
+	ProgressView(breathingViewModel: BreathingViewModel())
+		.preferredColorScheme(.dark)
+		.environment(BreathingViewModel())
 }

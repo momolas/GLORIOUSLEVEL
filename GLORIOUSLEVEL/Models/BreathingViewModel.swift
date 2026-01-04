@@ -14,6 +14,7 @@ enum BreathingPlan: String, CaseIterable {
 	case mwh = "Wim Hof"
 	case m365 = "365"
 	case m4x4 = "4x4"
+    case nox = "NOx"
 	
 	var description: String {
 		switch self {
@@ -23,17 +24,36 @@ enum BreathingPlan: String, CaseIterable {
 			return "Méthode 365"
 		case .m4x4:
 			return "Méthode 4x4"
+        case .nox:
+            return "Méthode NOx"
 		}
 	}
 	
-	var breathingTime: [String: Int] {
+	struct BreathingTimes {
+		let inhale: Int
+		let holdFull: Int
+        let exhale: Int
+        let holdEmpty: Int
+		let reps: Int
+	}
+
+	var details: BreathingTimes {
 		switch self {
 		case .mwh:
-			return ["defaultInhaleTime": 5, "defaultHoldTime": 60, "defaultTotalReps": 30]
+            // Wim Hof: Inhale/Exhale 5s, Hold 60s at end.
+            // Using logic from before: Inhale and Exhale use same time.
+            // NOx refactoring requires specific times.
+            // Old MWH logic: inhaling (5), exhaling (5).
+			return BreathingTimes(inhale: 5, holdFull: 0, exhale: 5, holdEmpty: 60, reps: 30)
 		case .m365:
-			return ["defaultInhaleTime": 5, "defaultHoldTime": 0, "defaultTotalReps": 6]
+            // 365: Inhale 5, Exhale 5. No holds.
+			return BreathingTimes(inhale: 5, holdFull: 0, exhale: 5, holdEmpty: 0, reps: 6)
 		case .m4x4:
-			return ["defaultInhaleTime": 5, "defaultHoldTime": 5, "defaultTotalReps": 10]
+            // Box: 5-5-5-5.
+			return BreathingTimes(inhale: 5, holdFull: 5, exhale: 5, holdEmpty: 5, reps: 10)
+        case .nox:
+            // NOx: Inhale 4, Hold 4, Exhale 6, Hold 2.
+            return BreathingTimes(inhale: 4, holdFull: 4, exhale: 6, holdEmpty: 2, reps: 6)
 		}
 	}
 }
@@ -48,10 +68,23 @@ enum BreathingState: CaseIterable {
 	case initial
 	case inhaling
 	case exhaling
-	case holding
+	case holding // Ambiguous now with two holds?
+    // Let's keep holding for backward compat logic but maybe need explicit states.
+    // For NOx: Inhale -> HoldFull -> Exhale -> HoldEmpty.
+    // m4x4: Inhale -> HoldFull -> Exhale -> HoldEmpty.
+    // MWH: Inhale -> Exhale ... -> HoldEmpty (at end).
+    // Let's redefine states to be more explicit or reuse 'holding'.
+    // Reusing 'holding' is tricky if durations differ.
+    // I will add holdFull and holdEmpty, and map 'holding' to one of them or remove it.
+    // Actually, to minimize churn, I can check previous state to know which hold it is.
+    // But getDuration needs to know.
+    // If I split states, I need to update UI messages too.
+    case holdFull
+    case holdEmpty
 }
 
 @Observable
+@MainActor
 class BreathingViewModel {
 	
 	var breathingState: BreathingState = .initial
@@ -66,34 +99,45 @@ class BreathingViewModel {
 			case .inhaling:
 				return "Inspirez"
 			case .exhaling:
+                if breathingPlan == .nox {
+                    return "Expirez (Mmm)"
+                }
 				return "Expirez"
-			case .holding:
+			case .holdFull, .holdEmpty:
 				return "Bloquez !"
+            case .holding: // Legacy fallback if needed, but I removed it from enum
+                return "Bloquez !"
 		}
 	}
 	
 	
-	var isReminder: Bool = false
 	var isVibration: Bool = true
 	
-	var reminders: [String] = []
-	
 	var inhaleTime : Int {
-		breathingPlan.breathingTime["defaultInhaleTime"]!
+		breathingPlan.details.inhale
 	}
 	
-	var holdTime : Int {
-		breathingPlan.breathingTime["defaultHoldTime"]!
-	}
+    // Legacy support or specific holds
+    var holdFullTime : Int {
+        breathingPlan.details.holdFull
+    }
+
+    var exhaleTime : Int {
+        breathingPlan.details.exhale
+    }
+
+    var holdEmptyTime : Int {
+        breathingPlan.details.holdEmpty
+    }
 	
 	var cycleNumber : Int {
-		breathingPlan.breathingTime["defaultTotalReps"]!
+		breathingPlan.details.reps
 	}
 	
 	var timeRemaining = 0
 	var cycleRemaining = 0
 	
-	var timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+	private var timerTask: Task<Void, Never>?
 	
 	private(set) var elapsedTime: Double = 0.0
 	private(set) var progress: Double = 0.0
@@ -103,23 +147,19 @@ class BreathingViewModel {
 	private var mindfulSessionDuration = 0
 	
 	func toggleBreathingPlan(breathingPlanSelected: BreathingPlan) {
-		if breathingPlanSelected == .mwh {
-			breathingPlan = .mwh
-		} else if breathingPlanSelected == .m365 {
-			breathingPlan = .m365
-		} else {
-			breathingPlan = .m4x4
-		}
+		breathingPlan = breathingPlanSelected
 	}
 	
 	func getDuration(state: BreathingState) -> Int {
 		switch state {
 		case .inhaling:
 			return inhaleTime
-		case .holding:
-			return holdTime
+        case .holdFull:
+            return holdFullTime
 		case .exhaling:
-			return inhaleTime
+			return exhaleTime
+        case .holdEmpty:
+            return holdEmptyTime
 		default:
 			return 3
 		}
@@ -129,25 +169,42 @@ class BreathingViewModel {
 		switch state {
 		case .inhaling:
 			return 3
-		case .holding:
-			if previousState == .inhaling {
-				return 3
-			} else {
-				return 0.7
-			}
+        case .holdFull:
+            return 3
 		case .exhaling:
 			return 0.7
+        case .holdEmpty:
+            return 0.7
+        case .holding:
+            return 1.0
 		default:
 			return 1.0
 		}
 	}
 	
 	func startTimer() {
-		self.timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+		stopTimer()
+		timerTask = Task { [weak self] in
+			let interval = Duration.seconds(1)
+			var nextTick = ContinuousClock.now + interval
+
+			while !Task.isCancelled {
+				try? await Task.sleep(until: nextTick, clock: .continuous)
+				if Task.isCancelled { break }
+				await self?.trackBreathing()
+				nextTick += interval
+
+				let now = ContinuousClock.now
+				if nextTick < now {
+					nextTick = now + interval
+				}
+			}
+		}
 	}
 	
 	func stopTimer() {
-		self.timer.upstream.connect().cancel()
+		timerTask?.cancel()
+		timerTask = nil
 	}
 	
 	func trackBreathing() {
@@ -166,38 +223,33 @@ class BreathingViewModel {
 			sendHeavyFeedback()
 			
 			switch breathingPlan {
-			case .m4x4:
+			case .m4x4, .nox: // Same cycle structure: Inhale -> HoldFull -> Exhale -> HoldEmpty
 				switch currentState {
 				case .inhaling:
-					currentState = .holding
-					previousState = .inhaling
+					currentState = .holdFull
+				case .holdFull:
+                    currentState = .exhaling
 				case .exhaling:
-					currentState = .holding
-					previousState = .exhaling
-				case .holding:
-					if previousState == .inhaling {
-						currentState = .exhaling
-					} else {
-						cycleRemaining -= 1
-						if cycleRemaining == 0 {
-							currentState = .initial
-							stopTimer()
-							sendHeavyFeedback()
-							return
-						} else {
-							currentState = .inhaling
-						}
-					}
+					currentState = .holdEmpty
+				case .holdEmpty:
+                    cycleRemaining -= 1
+                    if cycleRemaining == 0 {
+                        currentState = .initial
+                        stopTimer()
+                        sendHeavyFeedback()
+                        return
+                    } else {
+                        currentState = .inhaling
+                    }
 				case .initial:
 					return
+                default: break
 				}
 				
 			case .m365:
 				switch currentState {
 				case .inhaling:
 					currentState = .exhaling
-				case .holding:
-					return
 				case .exhaling:
 					cycleRemaining -= 1
 					if cycleRemaining == 0 {
@@ -210,33 +262,39 @@ class BreathingViewModel {
 					}
 				case .initial:
 					return
+                default: break
 				}
 				
 			case .mwh:
+                // Inhale -> Exhale -> (repeat) -> HoldEmpty (long) -> Finish
 				switch currentState {
 				case .inhaling:
 					currentState = .exhaling
-				case .holding:
+                case .exhaling:
+					cycleRemaining -= 1
+					if cycleRemaining == 0 {
+						currentState = .holdEmpty
+					} else {
+						currentState = .inhaling
+					}
+				case .holdEmpty:
 					currentState = .initial
 					stopTimer()
 					sendHeavyFeedback()
 					return
-				case .exhaling:
-					cycleRemaining -= 1
-					if cycleRemaining == 0 {
-						currentState = .holding
-					} else {
-						currentState = .inhaling
-					}
 				case .initial:
 					return
+                default: break
 				}
 			}
 			
 			timeRemaining = getDuration(state: currentState)
 			elapsedTime += 1
-			let totalTime = breathingState == .inhaling ? inhaleTime : inhaleTime
+            // Progress calculation needs total time per cycle? Or simplified.
+            // Keeping it simple relative to inhale time for now or total duration.
+			let totalTime = getDuration(state: currentState)
 			progress = (elapsedTime / Double(totalTime) * 100).rounded() / 100
+            if progress > 1.0 { progress = 0 } // Reset logic simplified
 		}
 	}
 	
@@ -277,7 +335,15 @@ class BreathingViewModel {
 	}
 	
 	func saveToHealthKit() {
-		HKManager.saveMindfulSession(startTime: Date.init(timeIntervalSinceNow: Double(-mindfulSessionDuration)), endTime: Date())
+		let startTime = Date(timeIntervalSinceNow: Double(-mindfulSessionDuration))
+		let endTime = Date()
+		Task {
+			await HKManager.saveMindfulSession(startTime: startTime, endTime: endTime)
+		}
 		mindfulSessionDuration = 0
+	}
+
+	deinit {
+		timerTask?.cancel()
 	}
 }

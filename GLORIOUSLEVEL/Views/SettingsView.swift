@@ -13,149 +13,194 @@ struct SettingsView: View {
 	@Environment(\.dismiss) var dismiss
 	
 	@Bindable var modelData: BreathingViewModel
+	@Bindable var notificationManager: NotificationManager
 	var healthkitManager: HealthKitManager
 	
-	@State var showSettingsView: Bool
+	@Binding var showSettingsView: Bool
 	@State var showTimePickerModal = false
+	@State private var newReminderDate = Date()
 	
 	@AppStorage("reduce_haptics") var reduceHaptics = false
 	@AppStorage("tense_time") var tenseTime = TimeConstants.defaultTensionTime
 	@AppStorage("relax_time") var relaxTime = TimeConstants.defaultRelaxTime
 	@AppStorage("reps_count") var totalReps = TimeConstants.defaultTotalReps
-//	@AppStorage("save_healthkit") var saveToAppleHealth = healthkitManager.isHealthKitAvailable()
+	@AppStorage("save_healthkit") var saveToAppleHealth = false
 	
 	var body: some View {
-		NavigationView {
-			List {
-				Section(header: Text("Paramètres")) {
+		NavigationStack {
+            Form {
+				Section {
 					Stepper(value: $tenseTime, in: 1...30) {
-						HStack {
-							ZStack {
-								Image(systemName: "wave.3.left")
-									.foregroundColor(.white)
-									.font(.callout)
-							}
-							.frame(width: 28, height: 28)
-							.background(Color.blue)
-							.cornerRadius(6)
-							Text("Contraction: \(tenseTime) \(tenseTime == 1 ? "seconde" : "secondes")")
-						}
+                        Label {
+                            Text("Contraction")
+                            Spacer()
+                            Text("\(tenseTime) sec")
+                                .foregroundStyle(.secondary)
+                        } icon: {
+                            Image(systemName: "wave.3.left")
+                                .foregroundStyle(.blue)
+                        }
 					}
 					
 					Stepper(value: $relaxTime, in: 1...30) {
-						HStack {
-							ZStack {
-								Image(systemName: "wave.3.right")
-									.foregroundColor(.white)
-									.font(.callout)
-							}
-							.frame(width: 28, height: 28)
-							.background(Color.blue)
-							.cornerRadius(6)
-							Text("Relachement: \(relaxTime) \(relaxTime == 1 ? "seconde" : "secondes")")
-						}
+                        Label {
+                            Text("Relâchement")
+                            Spacer()
+                            Text("\(relaxTime) sec")
+                                .foregroundStyle(.secondary)
+                        } icon: {
+                            Image(systemName: "wave.3.right")
+                                .foregroundStyle(.blue)
+                        }
 					}
 					
 					Stepper(value: $totalReps, in: 1...50) {
-						HStack {
-							ZStack {
-								Image(systemName: "repeat")
-									.foregroundColor(.white)
-									.font(.callout)
-							}
-							.frame(width: 28, height: 28)
-							.background(Color.green)
-							.cornerRadius(6)
-							Text("\(totalReps) \(totalReps == 1 ? "répétition" : "répétitions")")
-						}
+                        Label {
+                            Text("Répétitions")
+                            Spacer()
+                            Text("\(totalReps)")
+                                .foregroundStyle(.secondary)
+                        } icon: {
+                            Image(systemName: "repeat")
+                                .foregroundStyle(.green)
+                        }
 					}
+
+                    Button(role: .destructive, action: {
+                        tenseTime = TimeConstants.defaultTensionTime
+                        relaxTime = TimeConstants.defaultRelaxTime
+                        totalReps = TimeConstants.defaultTotalReps
+                    }) {
+                        Text("Réinitialiser les durées")
+                    }
+                } header: {
+                    Text("Personnalisation")
+                }
 					
-					if CHHapticEngine.capabilitiesForHardware().supportsHaptics {
-						Toggle(isOn: $reduceHaptics) {
-							HStack {
-								ZStack {
-									Image(systemName: "iphone.radiowaves.left.and.right")
-										.foregroundColor(.white)
-										.font(.callout)
-								}
-								.frame(width: 28, height: 28)
-								.background(Color.orange)
-								.cornerRadius(6)
-								Text("Désactiver les vibration")
-							}
-						}
-					}
+				Section {
+                    if CHHapticEngine.capabilitiesForHardware().supportsHaptics {
+                        Toggle(isOn: $reduceHaptics) {
+                            Label {
+                                Text("Désactiver les vibrations")
+                            } icon: {
+                                Image(systemName: "iphone.radiowaves.left.and.right")
+                                    .foregroundStyle(.orange)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Retour haptique")
+                }
 					
-					HStack {
-						Toggle(
-							isOn: $modelData.isReminder,
-							label: {
-								Label("Rappels", systemImage: "clock")
-									.foregroundColor(.white)
-							}
-						)
-					}
+                Section {
+                    Toggle(isOn: $notificationManager.isReminder) {
+                        Label {
+                            Text("Activer les rappels")
+                        } icon: {
+                            Image(systemName: "bell.fill")
+                                .foregroundStyle(.red)
+                        }
+                    }
+                    .onChange(of: notificationManager.isReminder) { _, newValue in
+                        if newValue {
+                            Task {
+                                await notificationManager.requestPermission()
+                                notificationManager.scheduleNotification()
+                            }
+                        } else {
+                            notificationManager.cancelNotification()
+                        }
+                    }
 					
-					Button(action: {
-						self.showTimePickerModal.toggle()
-					}, label: {
-						Text("Ajouter un rappel")
-					})
-					.disabled(!modelData.isReminder)
-					
-					Button(action: {
-						tenseTime = TimeConstants.defaultTensionTime
-						relaxTime = TimeConstants.defaultRelaxTime
-						totalReps = TimeConstants.defaultTotalReps
-					}) {
-						Text("Réinitialiser")
-					}
-				}
+                    if notificationManager.isReminder {
+                        ForEach(notificationManager.reminders, id: \.self) { reminder in
+                            Text(reminder)
+                        }
+                        .onDelete { indexSet in
+                            notificationManager.reminders.remove(atOffsets: indexSet)
+                            notificationManager.scheduleNotification()
+                        }
+
+                        Button(action: {
+                            self.showTimePickerModal.toggle()
+                        }, label: {
+                            Label("Ajouter un rappel", systemImage: "plus")
+                        })
+                    }
+                } header: {
+                    Text("Notifications")
+                }
 				
-//				if healthkitManager.isHealthKitAvailable() {
-//					Section(footer: Text("The duration of each session will be saved in Apple Health as Mindful Minutes. If access has been previously revoked, this toggle will have no effect. Access will need to be granted through Settings > Privacy > Inhale.")) {
-//						Toggle(isOn: $saveToAppleHealth) {
-//							HStack {
-//								ZStack {
-//									Image(systemName: "heart.fill")
-//										.foregroundColor(.white)
-//										.font(.callout)
-//								}
-//								.frame(width: 28, height: 28)
-//								.background(Color.red)
-//								.cornerRadius(6)
-//								Text("Save to Apple Health")
-//							}
-//						}
-//						.onTapGesture {
-//							print("Tap \(saveToAppleHealth)")
-//							
-//							// if the bool is false, this means the person just tapped it to toggle it to true
-//							if !saveToAppleHealth {
-//								healthkitManager.getAuthorization()
-//							}
-//						}
-//					}
-//				}
+				if healthkitManager.isHealthKitAvailable() {
+					Section {
+                        Toggle(isOn: $saveToAppleHealth) {
+                            Label {
+                                Text("Synchroniser avec Santé")
+                            } icon: {
+                                Image(systemName: "heart.fill")
+                                    .foregroundStyle(.pink)
+                            }
+                        }
+                        .onChange(of: saveToAppleHealth) { _, newValue in
+                            if newValue {
+                                Task {
+                                    await healthkitManager.getAuthorization()
+                                }
+                            }
+                        }
+					} header: {
+                        Text("Apple Health")
+                    } footer: {
+                        Text("La durée de chaque session sera enregistrée comme 'Mindful Minutes' dans l'application Santé.")
+                    }
+				}
 			}
-			.listStyle(GroupedListStyle())
 			.navigationTitle("Paramètres")
-			.navigationBarItems(
-				trailing: Button(
-					action: {
+            .navigationBarTitleDisplayMode(.inline)
+			.toolbar {
+				ToolbarItem(placement: .confirmationAction) {
+					Button("Terminé") {
 						self.showSettingsView = false
 					}
-				) {
-					Text("Terminé")
-						.bold()
+                    .fontWeight(.bold)
 				}
-			)
+			}
+            .sheet(isPresented: $showTimePickerModal) {
+                NavigationStack {
+                    VStack {
+                        DatePicker("Heure de rappel", selection: $newReminderDate, displayedComponents: .hourAndMinute)
+                            .datePickerStyle(WheelDatePickerStyle())
+                            .labelsHidden()
+                            .padding()
+
+                        Button("Ajouter") {
+                            let formatter = DateFormatter()
+                            formatter.dateFormat = "hh:mm a"
+                            let timeString = formatter.string(from: newReminderDate)
+                            notificationManager.reminders.append(timeString)
+                            notificationManager.scheduleNotification()
+                            showTimePickerModal = false
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding()
+                    }
+                    .navigationTitle("Ajouter un rappel")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Annuler") {
+                                showTimePickerModal = false
+                            }
+                        }
+                    }
+                }
+                .presentationDetents([.medium])
+            }
 		}
 	}
 }
 
 #Preview {
-	SettingsView(modelData: BreathingViewModel(), healthkitManager: HealthKitManager(), showSettingsView: true)
+	SettingsView(modelData: BreathingViewModel(), notificationManager: NotificationManager(), healthkitManager: HealthKitManager(), showSettingsView: .constant(true))
 		.environment(BreathingViewModel())
 		.preferredColorScheme(.dark)
 }
