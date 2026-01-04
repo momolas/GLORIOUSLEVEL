@@ -25,7 +25,7 @@ struct BreathingView: View {
                 .font(.system(size: 20))
                 .frame(width: 60, height: 20)
 				.sheet(isPresented: $showSettingsView) {
-					SettingsView(modelData: breathingViewModel, notificationManager: notificationManager, healthkitManager: HealthKitManager(), showSettingsView: $showSettingsView)
+					SettingsView(modelData: breathingViewModel, notificationManager: notificationManager, healthkitManager: breathingViewModel.HKManager, showSettingsView: $showSettingsView)
 				}
 			}
 			

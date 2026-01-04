@@ -28,11 +28,11 @@ struct HeartbeatView: View {
 			
 			Button(action: {
 				if flag {
-					labelText = "Get Data"
+					labelText = "Données récupérées"
 					flag = false
 				} else {
 					if HKHealthStore.isHealthDataAvailable() {
-						labelText = "Succeeded!"
+						labelText = "Succès !"
 						healthStore.requestAuthorization(toShare: nil, read: allTypes) { (success, error) in
 							let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
 							let query = HKSampleQuery(sampleType: HKSeriesType.heartbeat(), predicate: nil, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { (_, samples, _) in
@@ -49,13 +49,14 @@ struct HeartbeatView: View {
 							healthStore.execute(query)
 						}
 					} else {
-						labelText = "Unavailabe"
+						labelText = "Indisponible"
 					}
 					flag = true
 				}
 			}) {
-				Text("Button")
-					.font(.largeTitle)
+				Text("Charger les données")
+					.font(.title3)
+					.bold()
 					.padding(.horizontal, 24)
 					.padding(.vertical, 10)
 					.background(.thinMaterial)
