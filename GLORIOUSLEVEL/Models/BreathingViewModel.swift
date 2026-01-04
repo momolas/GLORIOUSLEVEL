@@ -167,16 +167,23 @@ class BreathingViewModel {
 	
 	func getScale(state: BreathingState) -> Double {
 		switch state {
-		case .inhaling:
-			return 3
-        case .holdFull:
-            return 3
-		case .exhaling:
-			return 0.7
-        case .holdEmpty:
-            return 0.7
-        case .holding:
-            return 1.0
+		case .inhaling, .holdFull:
+			return 1.2
+		case .exhaling, .holdEmpty:
+			return 0.8
+		case .holding:
+			return 1.0
+		default:
+			return 0.8
+		}
+	}
+
+	func getOpacity(state: BreathingState) -> Double {
+		switch state {
+		case .inhaling, .holdFull:
+			return 0.3
+		case .exhaling, .holdEmpty:
+			return 1.0
 		default:
 			return 1.0
 		}
