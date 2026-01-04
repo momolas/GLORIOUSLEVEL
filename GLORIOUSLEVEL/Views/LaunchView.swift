@@ -14,7 +14,6 @@ struct LaunchView: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
                 
                 Spacer()
                 
@@ -56,7 +55,6 @@ struct LaunchView: View {
             }
         }
     }
-}
 
 #Preview {
     LaunchView()

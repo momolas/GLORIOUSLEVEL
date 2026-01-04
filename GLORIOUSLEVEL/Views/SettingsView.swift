@@ -29,7 +29,7 @@ struct SettingsView: View {
 	var body: some View {
 		NavigationStack {
 			List {
-				Section(header: Text("Paramètres")) {
+				Section {
 					Stepper(value: $tenseTime, in: 1...30) {
 						HStack {
 							ZStack {
@@ -85,6 +85,10 @@ struct SettingsView: View {
 								.clipShape(.rect(cornerRadius: 6))
 								Text("Désactiver les vibration")
 							}
+							.frame(width: 28, height: 28)
+							.background(Color.orange)
+							.clipShape(.rect(cornerRadius: 6))
+							Text("Désactiver les vibration")
 						}
 					}
 					
@@ -146,7 +150,6 @@ struct SettingsView: View {
 					}
 				}
 			}
-			.listStyle(GroupedListStyle())
 			.navigationTitle("Paramètres")
 			.toolbar {
 				ToolbarItem(placement: .topBarTrailing) {
@@ -199,3 +202,4 @@ struct SettingsView: View {
 		.environment(BreathingViewModel())
 		.preferredColorScheme(.dark)
 }
+
