@@ -26,20 +26,23 @@ struct LaunchView: View {
                 
                 Spacer()
                 
-                NavigationLink(
-                    destination: BreathingView(), 
-                    label: {
-                        Image(systemName: "balloon")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .foregroundColor(.green)
-                            .frame(width: 200, height: 200)
-                    })
+                NavigationLink(value: "breathing") {
+                    Image(systemName: "balloon")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .foregroundStyle(.green)
+                        .frame(width: 200, height: 200)
+                }
                 
                 Spacer()
                 Spacer()
             }
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(for: String.self) { value in
+                if value == "breathing" {
+                    BreathingView()
+                }
+            }
         }
     }
 }
