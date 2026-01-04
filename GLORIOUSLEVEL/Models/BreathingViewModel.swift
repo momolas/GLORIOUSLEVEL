@@ -47,9 +47,6 @@ enum BreathingPlan: String, CaseIterable {
 		switch self {
 		case .mwh:
             // Wim Hof: Inhale/Exhale 5s, Hold 60s at end.
-            // Using logic from before: Inhale and Exhale use same time.
-            // NOx refactoring requires specific times.
-            // Old MWH logic: inhaling (5), exhaling (5).
 			return BreathingTimes(inhale: 5, holdFull: 0, exhale: 5, holdEmpty: 60, reps: 30)
 		case .m365:
             // 365: Inhale 5, Exhale 5. No holds.
@@ -80,17 +77,6 @@ enum BreathingState: CaseIterable {
 	case initial
 	case inhaling
 	case exhaling
-	case holding // Ambiguous now with two holds?
-    // Let's keep holding for backward compat logic but maybe need explicit states.
-    // For NOx: Inhale -> HoldFull -> Exhale -> HoldEmpty.
-    // m4x4: Inhale -> HoldFull -> Exhale -> HoldEmpty.
-    // MWH: Inhale -> Exhale ... -> HoldEmpty (at end).
-    // Let's redefine states to be more explicit or reuse 'holding'.
-    // Reusing 'holding' is tricky if durations differ.
-    // I will add holdFull and holdEmpty, and map 'holding' to one of them or remove it.
-    // Actually, to minimize churn, I can check previous state to know which hold it is.
-    // But getDuration needs to know.
-    // If I split states, I need to update UI messages too.
     case holdFull
     case holdEmpty
 }
@@ -124,8 +110,6 @@ class BreathingViewModel {
                     return "Pincez le nez !"
                 }
 				return "Bloquez !"
-            case .holding: // Legacy fallback if needed, but I removed it from enum
-                return "Bloquez !"
 		}
 	}
 	
@@ -187,8 +171,6 @@ class BreathingViewModel {
 			return 1.2
 		case .exhaling, .holdEmpty:
 			return 0.8
-		case .holding:
-			return 1.0
 		default:
 			return 0.8
 		}
