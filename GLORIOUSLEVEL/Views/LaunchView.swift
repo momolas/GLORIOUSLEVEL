@@ -20,40 +20,29 @@ struct LaunchView: View {
                 
                 Text("PAINFULDAY")
                     .font(.largeTitle)
+					.fontWeight(.light)
+					.fontDesign(.rounded)
                 
                 Text("Une application pour faire des exercices de respiration")
                     .font(.caption)
                 
                 Spacer()
                 
-                NavigationLink(value: "breathing") {
-                    Image(systemName: "balloon")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .foregroundStyle(.green)
-                        .frame(width: 200, height: 200)
-                }
-
-                NavigationLink(value: "heartbeat") {
-                    HStack {
-                        Image(systemName: "heart.text.square")
-                        Text("Rythme Cardiaque")
-                    }
-                    .font(.title3)
-                    .padding()
-                }
+				NavigationLink(
+					destination: BreathingView(),
+					label: {
+						Image(systemName: "balloon")
+							.resizable()
+							.aspectRatio(contentMode: .fit)
+							.foregroundColor(.green)
+							.frame(width: 200, height: 200)
+					}
+				)
                 
                 Spacer()
                 Spacer()
             }
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: String.self) { value in
-                if value == "breathing" {
-                    BreathingView()
-                } else if value == "heartbeat" {
-                    HeartbeatView()
-                }
-            }
         }
     }
 }
