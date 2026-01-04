@@ -10,6 +10,7 @@ import SwiftUI
 struct BreathingView: View {
 	
 	@State var breathingViewModel = BreathingViewModel()
+    @State var notificationManager = NotificationManager()
 	@State var breathingPlanSelection = BreathingPlan.m365
 	@State var showSettingsView = false
 	
@@ -24,7 +25,7 @@ struct BreathingView: View {
                 .font(.system(size: 20))
                 .frame(width: 60, height: 20)
 				.sheet(isPresented: $showSettingsView) {
-					SettingsView(modelData: breathingViewModel, healthkitManager: HealthKitManager(), showSettingsView: $showSettingsView)
+					SettingsView(modelData: breathingViewModel, notificationManager: notificationManager, healthkitManager: HealthKitManager(), showSettingsView: $showSettingsView)
 				}
 			}
 			

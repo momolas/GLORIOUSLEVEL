@@ -13,16 +13,18 @@ struct SettingsView: View {
 	@Environment(\.dismiss) var dismiss
 	
 	@Bindable var modelData: BreathingViewModel
+	@Bindable var notificationManager: NotificationManager
 	var healthkitManager: HealthKitManager
 	
 	@Binding var showSettingsView: Bool
 	@State var showTimePickerModal = false
+	@State private var newReminderDate = Date()
 	
 	@AppStorage("reduce_haptics") var reduceHaptics = false
 	@AppStorage("tense_time") var tenseTime = TimeConstants.defaultTensionTime
 	@AppStorage("relax_time") var relaxTime = TimeConstants.defaultRelaxTime
 	@AppStorage("reps_count") var totalReps = TimeConstants.defaultTotalReps
-//	@AppStorage("save_healthkit") var saveToAppleHealth = healthkitManager.isHealthKitAvailable()
+	@AppStorage("save_healthkit") var saveToAppleHealth = false
 	
 	var body: some View {
 		NavigationStack {
@@ -88,20 +90,39 @@ struct SettingsView: View {
 					
 					HStack {
 						Toggle(
-							isOn: $modelData.isReminder,
+							isOn: $notificationManager.isReminder,
 							label: {
 								Label("Rappels", systemImage: "clock")
 									.foregroundStyle(.white)
 							}
 						)
+                        .onChange(of: notificationManager.isReminder) { _, newValue in
+                            if newValue {
+                                Task {
+                                    await notificationManager.requestPermission()
+                                    notificationManager.scheduleNotification()
+                                }
+                            } else {
+                                notificationManager.cancelNotification()
+                            }
+                        }
 					}
 					
-					Button(action: {
-						self.showTimePickerModal.toggle()
-					}, label: {
-						Text("Ajouter un rappel")
-					})
-					.disabled(!modelData.isReminder)
+                    if notificationManager.isReminder {
+                        ForEach(notificationManager.reminders, id: \.self) { reminder in
+                            Text(reminder)
+                        }
+                        .onDelete { indexSet in
+                            notificationManager.reminders.remove(atOffsets: indexSet)
+                            notificationManager.scheduleNotification()
+                        }
+
+                        Button(action: {
+                            self.showTimePickerModal.toggle()
+                        }, label: {
+                            Text("Ajouter un rappel")
+                        })
+                    }
 					
 					Button(action: {
 						tenseTime = TimeConstants.defaultTensionTime
@@ -112,31 +133,18 @@ struct SettingsView: View {
 					}
 				}
 				
-//				if healthkitManager.isHealthKitAvailable() {
-//					Section(footer: Text("The duration of each session will be saved in Apple Health as Mindful Minutes. If access has been previously revoked, this toggle will have no effect. Access will need to be granted through Settings > Privacy > Inhale.")) {
-//						Toggle(isOn: $saveToAppleHealth) {
-//							HStack {
-//								ZStack {
-//									Image(systemName: "heart.fill")
-//										.foregroundStyle(.white)
-//										.font(.callout)
-//								}
-//								.frame(width: 28, height: 28)
-//								.background(Color.red)
-//								.clipShape(.rect(cornerRadius: 6))
-//								Text("Save to Apple Health")
-//							}
-//						}
-//						.onTapGesture {
-//							print("Tap \(saveToAppleHealth)")
-//							
-//							// if the bool is false, this means the person just tapped it to toggle it to true
-//							if !saveToAppleHealth {
-//								healthkitManager.getAuthorization()
-//							}
-//						}
-//					}
-//				}
+				if healthkitManager.isHealthKitAvailable() {
+					Section(footer: Text("The duration of each session will be saved in Apple Health as Mindful Minutes. If access has been previously revoked, this toggle will have no effect. Access will need to be granted through Settings > Privacy > Inhale.")) {
+                        Toggle("Save to Apple Health", isOn: $saveToAppleHealth)
+                            .onChange(of: saveToAppleHealth) { _, newValue in
+                                if newValue {
+                                    Task {
+                                        await healthkitManager.getAuthorization()
+                                    }
+                                }
+                            }
+					}
+				}
 			}
 			.listStyle(GroupedListStyle())
 			.navigationTitle("Paramètres")
@@ -152,12 +160,42 @@ struct SettingsView: View {
 					}
 				}
 			}
+            .sheet(isPresented: $showTimePickerModal) {
+                NavigationStack {
+                    VStack {
+                        DatePicker("Heure de rappel", selection: $newReminderDate, displayedComponents: .hourAndMinute)
+                            .datePickerStyle(WheelDatePickerStyle())
+                            .labelsHidden()
+                            .padding()
+
+                        Button("Ajouter") {
+                            let formatter = DateFormatter()
+                            formatter.dateFormat = "hh:mm a"
+                            let timeString = formatter.string(from: newReminderDate)
+                            notificationManager.reminders.append(timeString)
+                            notificationManager.scheduleNotification()
+                            showTimePickerModal = false
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding()
+                    }
+                    .navigationTitle("Ajouter un rappel")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Annuler") {
+                                showTimePickerModal = false
+                            }
+                        }
+                    }
+                }
+                .presentationDetents([.medium])
+            }
 		}
 	}
 }
 
 #Preview {
-	SettingsView(modelData: BreathingViewModel(), healthkitManager: HealthKitManager(), showSettingsView: .constant(true))
+	SettingsView(modelData: BreathingViewModel(), notificationManager: NotificationManager(), healthkitManager: HealthKitManager(), showSettingsView: .constant(true))
 		.environment(BreathingViewModel())
 		.preferredColorScheme(.dark)
 }

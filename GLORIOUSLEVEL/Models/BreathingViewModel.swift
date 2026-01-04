@@ -80,10 +80,7 @@ class BreathingViewModel {
 	}
 	
 	
-	var isReminder: Bool = false
 	var isVibration: Bool = true
-	
-	var reminders: [String] = []
 	
 	var inhaleTime : Int {
 		breathingPlan.details.inhale
@@ -152,10 +149,19 @@ class BreathingViewModel {
 	func startTimer() {
 		stopTimer()
 		timerTask = Task { [weak self] in
+			let interval = Duration.seconds(1)
+			var nextTick = ContinuousClock.now + interval
+
 			while !Task.isCancelled {
-				try? await Task.sleep(for: .seconds(1))
+				try? await Task.sleep(until: nextTick, clock: .continuous)
 				if Task.isCancelled { break }
 				await self?.trackBreathing()
+				nextTick += interval
+
+				let now = ContinuousClock.now
+				if nextTick < now {
+					nextTick = now + interval
+				}
 			}
 		}
 	}
@@ -298,5 +304,9 @@ class BreathingViewModel {
 			await HKManager.saveMindfulSession(startTime: startTime, endTime: endTime)
 		}
 		mindfulSessionDuration = 0
+	}
+
+	deinit {
+		timerTask?.cancel()
 	}
 }

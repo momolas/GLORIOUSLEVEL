@@ -37,11 +37,11 @@ struct HeartbeatView: View {
 							let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
 							let query = HKSampleQuery(sampleType: HKSeriesType.heartbeat(), predicate: nil, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { (_, samples, _) in
 								if let sample = samples?.first as? HKHeartbeatSeriesSample {
-									// print("series start:\(sample.startDate)\tend:\(sample.endDate)")
+									print("series start:\(sample.startDate)\tend:\(sample.endDate)")
 									let seriesQuery = HKHeartbeatSeriesQuery(heartbeatSeries: sample) {
 										query, timeSinceSeriesStart, precededByGap, done, error in
-										// let formatted = String(format: "%.2f", timeSinceSeriesStart)
-										// print("timeSinceSeriesStart:\(formatted)\tprecededByGap:\(precededByGap)\t done:\(done)")
+										let formatted = String(format: "%.2f", timeSinceSeriesStart)
+										print("timeSinceSeriesStart:\(formatted)\tprecededByGap:\(precededByGap)\t done:\(done)")
 									}
 									healthStore.execute(seriesQuery)
 								}
