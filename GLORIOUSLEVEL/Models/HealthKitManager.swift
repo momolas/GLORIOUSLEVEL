@@ -10,6 +10,7 @@ import HealthKit
 import Observation
 
 @Observable
+@MainActor
 class HealthKitManager {
 	
 	var healthStore: HKHealthStore? = HKHealthStore()
@@ -30,19 +31,14 @@ class HealthKitManager {
 		return HKHealthStore.isHealthDataAvailable()
 	}
 	
-	func getAuthorization() {
-		healthStore!.requestAuthorization(toShare: Set([writeType]), read: nil, completion: { (userWasShownPermissionSheet, error) in
-			if userWasShownPermissionSheet {
-				print("Shown sheet")
-				if self.haveAuthorization() {
-					print("Have Authorization")
-				} else {
-					print("Don't have Authorization")
-				}
-			} else {
-				print("Not shown sheet")
-			}
-		})
+	func getAuthorization() async {
+		guard let healthStore else { return }
+		do {
+			try await healthStore.requestAuthorization(toShare: Set([writeType]), read: nil)
+			// print("Authorization requested")
+		} catch {
+			// print("Error requesting authorization: \(error)")
+		}
 	}
 	
 	func haveAuthorization() -> Bool {
@@ -52,19 +48,18 @@ class HealthKitManager {
 		return false
 	}
 	
-	func saveMindfulSession(startTime: Date, endTime: Date) -> Void {
+	func saveMindfulSession(startTime: Date, endTime: Date) async {
 		guard UserDefaults.standard.bool(forKey: "save_healthkit") && self.haveAuthorization() else {
 			return
 		}
 		
 		let mindfulSample = HKCategorySample(type: writeType, value: HKCategoryValue.notApplicable.rawValue, start: startTime, end: endTime)
-		healthStore!.save(mindfulSample) { (success, error) in
-			if error != nil {
-				print("Error \(error!)")
-			} else {
-				print("Saved \(startTime) \(endTime)")
-			}
+
+		do {
+			try await healthStore?.save(mindfulSample)
+			// print("Saved \(startTime) \(endTime)")
+		} catch {
+			// print("Error \(error)")
 		}
 	}
 }
-

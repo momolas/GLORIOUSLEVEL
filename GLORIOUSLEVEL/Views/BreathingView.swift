@@ -9,7 +9,8 @@ import SwiftUI
 
 struct BreathingView: View {
 	
-	var breathingViewModel = BreathingViewModel()
+	@State var breathingViewModel = BreathingViewModel()
+    @State var notificationManager = NotificationManager()
 	@State var breathingPlanSelection = BreathingPlan.m365
 	@State var showSettingsView = false
 	
@@ -17,19 +18,18 @@ struct BreathingView: View {
 		VStack {
 			HStack {
 				Spacer()
-				Button(action: {
+				Button("Settings", systemImage: "slider.horizontal.3") {
 					self.showSettingsView.toggle()
-				}) {
-					Image(systemName: "slider.horizontal.3")
-						.font(.system(size: 20))
-						.frame(width: 60, height: 20)
 				}
+                .labelStyle(.iconOnly)
+                .font(.system(size: 20))
+                .frame(width: 60, height: 20)
 				.sheet(isPresented: $showSettingsView) {
-					SettingsView(modelData: BreathingViewModel(), healthkitManager: HealthKitManager(), showSettingsView: self.showSettingsView)
+					SettingsView(modelData: breathingViewModel, notificationManager: notificationManager, healthkitManager: HealthKitManager(), showSettingsView: $showSettingsView)
 				}
 			}
 			
-			Text("\(breathingPlanSelection.description)" as String)
+			Text(breathingPlanSelection.description)
 				.font(.largeTitle)
 			
 			Picker(selection: $breathingPlanSelection, label: Text("Sélectionnez un plan")) {
@@ -38,7 +38,7 @@ struct BreathingView: View {
 				}
 			}
 			.pickerStyle(SegmentedPickerStyle())
-			.onChange(of: breathingPlanSelection) {
+			.onChange(of: breathingPlanSelection) { _, _ in
 				breathingViewModel.toggleBreathingPlan(breathingPlanSelected: breathingPlanSelection)
 			}
 			
@@ -52,14 +52,14 @@ struct BreathingView: View {
 			ZStack {
 				Circle()
 					.frame(width: 300, height: 300, alignment: .center)
-					.foregroundColor(Color(white: 0.15))
+					.foregroundStyle(Color(white: 0.15))
 				Circle()
 					.frame(width: 100, height: 100, alignment: .center)
-					.foregroundColor(Color(white: 0.3))
+					.foregroundStyle(Color(white: 0.3))
 					.scaleEffect(breathingViewModel.getScale(state: breathingViewModel.currentState))
 					.animation(.easeInOut(duration: Double(breathingViewModel.currentState == BreathingState.initial ? 3 : breathingViewModel.getDuration(state: breathingViewModel.currentState))), value: breathingViewModel.getScale(state: breathingViewModel.currentState))
 				
-				Text("\(breathingViewModel.timeRemaining)")
+                Text(breathingViewModel.timeRemaining, format: .number)
 					.font(.system(size: 48, weight: .semibold))
 			}
 			.frame(width: 300, height: 300, alignment: .center)
@@ -79,19 +79,16 @@ struct BreathingView: View {
 			}, label: {
 				Text(breathingViewModel.currentState != .initial ? "Terminer" : "Démarrer")
 					.font(.title3)
-					.fontWeight(.semibold)
+					.bold()
 					.padding(.horizontal, 24)
 					.padding(.vertical, 10)
 					.background(.thinMaterial)
-					.cornerRadius(5)
+					.clipShape(.rect(cornerRadius: 5))
 			})
 			
 		}
 		.navigationBarBackButtonHidden(true)
 		.padding()
-		.onReceive(breathingViewModel.timer) { _ in
-			breathingViewModel.trackBreathing()
-		}
 	}
 }
 

@@ -1,5 +1,5 @@
 //
-//  SwiftUIView.swift
+//  HeartbeatView.swift
 //  GLORIOUSLEVEL
 //
 //  Created by Mo on 11/10/2022.
@@ -8,7 +8,7 @@
 import SwiftUI
 import HealthKit
 
-struct ContentView: View {
+struct HeartbeatView: View {
 	@State var labelText = "Get Data"
 	@State var flag = false
 	
@@ -59,12 +59,12 @@ struct ContentView: View {
 					.padding(.horizontal, 24)
 					.padding(.vertical, 10)
 					.background(.thinMaterial)
-					.cornerRadius(5)
+					.clipShape(.rect(cornerRadius: 5))
 			}
 		}
 	}
 }
 
 #Preview {
-	ContentView(labelText: "Get Data", flag: false)
+	HeartbeatView(labelText: "Get Data", flag: false)
 }

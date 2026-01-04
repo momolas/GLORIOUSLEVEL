@@ -10,6 +10,7 @@ import UserNotifications
 import Observation
 
 @Observable
+@MainActor
 class NotificationManager {
 	
 	var isReminder: Bool {
@@ -29,14 +30,15 @@ class NotificationManager {
 		self.reminders = UserDefaults.standard.object(forKey: "reminders") as? [String] ?? []
 	}
 	
-	func requestPermission() {
+	func requestPermission() async {
 		let options: UNAuthorizationOptions = [.alert, .badge, .sound, .provisional]
-		UNUserNotificationCenter.current().requestAuthorization(options: options) { (success, error) in
-			if success {
+		do {
+			let granted = try await UNUserNotificationCenter.current().requestAuthorization(options: options)
+			if granted {
 				print("authorization granted")
-			} else if let error {
-				print(error.localizedDescription)
 			}
+		} catch {
+			print(error.localizedDescription)
 		}
 	}
 	
@@ -50,18 +52,20 @@ class NotificationManager {
 		for reminder in reminders {
 			let dateFormatter = DateFormatter()
 			dateFormatter.dateFormat = "hh:mm a"
-			let date = dateFormatter.date(from: reminder)
-			
-			let dateComponents = DateComponents(hour: Calendar.current.component(.hour, from: date!), minute: Calendar.current.component(.minute, from: date!))
-			sendNotification(date: dateComponents, title: "Kegel", subtitle: "Exercise", body: "Il est temps de faire de l'exercice")
+			if let date = dateFormatter.date(from: reminder) {
+				let dateComponents = DateComponents(hour: Calendar.current.component(.hour, from: date), minute: Calendar.current.component(.minute, from: date))
+				Task {
+					await sendNotification(date: dateComponents, title: "Kegel", subtitle: "Exercise", body: "Il est temps de faire de l'exercice")
+				}
+			}
 		}
 	}
 	
-	func sendNotification(date: DateComponents, title: String, subtitle: String, body: String, repeat: Bool = true) {
+	func sendNotification(date: DateComponents, title: String, subtitle: String, body: String, repeat: Bool = true) async {
 		
 		let center = UNUserNotificationCenter.current()
 		
-		let addRequest = {
+		func addRequest() async {
 			let content = UNMutableNotificationContent()
 			content.title = title
 			content.subtitle = subtitle
@@ -71,20 +75,24 @@ class NotificationManager {
 			let trigger = UNCalendarNotificationTrigger(dateMatching: date, repeats: true)
 			let request = UNNotificationRequest(identifier: UUID().uuidString + title, content: content, trigger: trigger)
 			
-			center.add(request)
+			do {
+				try await center.add(request)
+			} catch {
+				print("Error adding notification: \(error.localizedDescription)")
+			}
 		}
 		
-		center.getNotificationSettings { settings in
-			if settings.authorizationStatus == .authorized {
-				addRequest()
-			} else {
-				center.requestAuthorization(options: [.alert, .badge, .sound, .provisional]) { success, error in
-					if success {
-						addRequest()
-					} else if let error {
-						print(error.localizedDescription)
-					}
+		let settings = await center.notificationSettings()
+		if settings.authorizationStatus == .authorized {
+			await addRequest()
+		} else {
+			do {
+				let granted = try await center.requestAuthorization(options: [.alert, .badge, .sound, .provisional])
+				if granted {
+					await addRequest()
 				}
+			} catch {
+				print(error.localizedDescription)
 			}
 		}
 	}
