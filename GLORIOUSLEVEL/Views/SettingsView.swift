@@ -71,6 +71,17 @@ struct SettingsView: View {
 							Text("\(totalReps) \(totalReps == 1 ? "répétition" : "répétitions")")
 						}
 					}
+
+                    Button(role: .destructive, action: {
+                        tenseTime = TimeConstants.defaultTensionTime
+                        relaxTime = TimeConstants.defaultRelaxTime
+                        totalReps = TimeConstants.defaultTotalReps
+                    }) {
+                        Text("Réinitialiser les durées")
+                    }
+                } header: {
+                    Text("Personnalisation")
+                }
 					
 					if CHHapticEngine.capabilitiesForHardware().supportsHaptics {
 						Toggle(isOn: $reduceHaptics) {
@@ -146,7 +157,6 @@ struct SettingsView: View {
 					}
 				}
 			}
-			.listStyle(GroupedListStyle())
 			.navigationTitle("Paramètres")
 			.toolbar {
 				ToolbarItem(placement: .topBarTrailing) {

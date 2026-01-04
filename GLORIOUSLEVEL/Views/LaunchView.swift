@@ -14,9 +14,17 @@ struct LaunchView: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
+            ZStack {
+                // Background
+                Color.black.ignoresSafeArea()
                 
-                Spacer()
+                // Ambient Gradient
+                LinearGradient(
+                    gradient: Gradient(colors: [.black, .blue.opacity(0.3), .purple.opacity(0.2)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
                 Text("PAINFULDAY")
                     .font(.largeTitle)
