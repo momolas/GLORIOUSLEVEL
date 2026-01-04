@@ -89,8 +89,8 @@ class BreathingViewModel {
 	
 	var breathingState: BreathingState = .initial
 	var breathingPlan: BreathingPlan = .m365
-	var currentState = BreathingState.initial
-	var previousState = BreathingState.initial
+	var currentState: BreathingState = .initial
+	var previousState: BreathingState = .initial
 	
 	var breathingMessage: String {
 		switch currentState {
