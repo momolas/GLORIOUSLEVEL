@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-enum Day: Int, CaseIterable {
+enum WeekDay: Int, CaseIterable {
 	case lundi = 1, mardi, mercredi, jeudi, vendredi, samedi, dimanche
 
 	var abbreviation: String {
@@ -35,17 +35,14 @@ enum Day: Int, CaseIterable {
 	}
 
 	var calendarWeekday: Int {
-        // Calendar.current.weekday symbols usually start with Sunday=1.
-        // If our enum starts with Monday=1, we need to map correctly.
-        // Monday=2, ..., Saturday=7, Sunday=1
 		switch self {
-			case .lundi: return 2
-			case .mardi: return 3
-			case .mercredi: return 4
-			case .jeudi: return 5
-			case .vendredi: return 6
-			case .samedi: return 7
-			case .dimanche: return 1
+			case .lundi: return 1
+			case .mardi: return 2
+			case .mercredi: return 3
+			case .jeudi: return 4
+			case .vendredi: return 5
+			case .samedi: return 6
+			case .dimanche: return 7
 		}
 	}
 }
@@ -54,7 +51,7 @@ struct NotificationSchedulerView: View {
 	@Environment(\.dismiss) var dismiss
 	var notificationManager: NotificationManager
 
-	@State private var selectedDays: [Day] = [] // Liste des jours sélectionnés
+	@State private var selectedDays: [WeekDay] = [] // Liste des jours sélectionnés
 	@State private var selectedTime: Date = {
 		var components = DateComponents()
 		components.hour = 9
@@ -74,7 +71,7 @@ struct NotificationSchedulerView: View {
 					// Sélecteur de jour avec des cercles interactifs
 					HStack {
 						Spacer()
-						ForEach(Day.allCases, id: \.self) { day in
+						ForEach(WeekDay.allCases, id: \.self) { day in
 							Button {
 								if selectedDays.contains(day) {
 									selectedDays.removeAll(where: { $0 == day })
@@ -141,7 +138,7 @@ struct NotificationSchedulerView: View {
                                 // Format logic for display: join day names
                                 let dayNames = reminder.days.compactMap { weekday -> String? in
                                     // Reverse map weekday int to Day name
-                                    return Day.allCases.first(where: { $0.calendarWeekday == weekday })?.fullName
+                                    return WeekDay.allCases.first(where: { $0.calendarWeekday == weekday })?.fullName
                                 }.joined(separator: ", ")
 
 								Text("\(dayNames), \(reminder.date, format: .dateTime.hour().minute())")

@@ -48,7 +48,7 @@ class NotificationManager {
 		}
 	}
 
-    func scheduleWeeklyReminders(for days: [Day], at time: Date) -> Int {
+    func scheduleWeeklyReminders(for days: [WeekDay], at time: Date) -> Int {
         var count = 0
         let calendar = Calendar.current
         let hour = calendar.component(.hour, from: time)

@@ -171,8 +171,6 @@ class BreathingViewModel {
 			return 1.2
 		case .exhaling, .holdEmpty:
 			return 0.8
-		case .holding:
-			return 1.0
 		default:
 			return 0.8
 		}

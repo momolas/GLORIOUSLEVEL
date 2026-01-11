@@ -14,7 +14,7 @@
 		CD3B632C28EDAC740046373F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CD3B632B28EDAC740046373F /* Preview Assets.xcassets */; };
 		CD3B633828EDC33C0046373F /* BreathingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3B633728EDC33C0046373F /* BreathingViewModel.swift */; };
 		CD3B633A28EDC3800046373F /* LaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3B633928EDC3800046373F /* LaunchView.swift */; };
-		CD3B633C28EDE8B40046373F /* ProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3B633B28EDE8B40046373F /* ProgressView.swift */; };
+		CD60B5CB2F13AFDF00A84394 /* NotificationSchedulerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD60B5CA2F13AFDF00A84394 /* NotificationSchedulerView.swift */; };
 		CD7CEDE02B03FBD400776270 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD7CEDDF2B03FBD400776270 /* NotificationManager.swift */; };
 		CD84C8892F0AA98D00A08C84 /* HeartbeatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD84C8882F0AA98C00A08C84 /* HeartbeatView.swift */; };
 		CDB21EC328F2F3B9000B6464 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB21EC228F2F3B9000B6464 /* HealthKitManager.swift */; };
@@ -30,7 +30,7 @@
 		CD3B632B28EDAC740046373F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		CD3B633728EDC33C0046373F /* BreathingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreathingViewModel.swift; sourceTree = "<group>"; };
 		CD3B633928EDC3800046373F /* LaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchView.swift; sourceTree = "<group>"; };
-		CD3B633B28EDE8B40046373F /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
+		CD60B5CA2F13AFDF00A84394 /* NotificationSchedulerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSchedulerView.swift; sourceTree = "<group>"; };
 		CD7CEDDF2B03FBD400776270 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		CD84C8882F0AA98C00A08C84 /* HeartbeatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartbeatView.swift; sourceTree = "<group>"; };
 		CDB21EC228F2F3B9000B6464 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
@@ -87,10 +87,10 @@
 		CD3B633228EDAC7E0046373F /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				CD60B5CA2F13AFDF00A84394 /* NotificationSchedulerView.swift */,
 				CD84C8882F0AA98C00A08C84 /* HeartbeatView.swift */,
 				CD3B632528EDAC730046373F /* BreathingView.swift */,
 				CD3B633928EDC3800046373F /* LaunchView.swift */,
-				CD3B633B28EDE8B40046373F /* ProgressView.swift */,
 				CD0B029029708FC5007145B4 /* SettingsView.swift */,
 			);
 			path = Views;
@@ -181,8 +181,8 @@
 				CD7CEDE02B03FBD400776270 /* NotificationManager.swift in Sources */,
 				CDB21EC328F2F3B9000B6464 /* HealthKitManager.swift in Sources */,
 				CD3B633A28EDC3800046373F /* LaunchView.swift in Sources */,
-				CD3B633C28EDE8B40046373F /* ProgressView.swift in Sources */,
 				CD3B632428EDAC730046373F /* GLORIOUSLEVELApp.swift in Sources */,
+				CD60B5CB2F13AFDF00A84394 /* NotificationSchedulerView.swift in Sources */,
 				CD3B633828EDC33C0046373F /* BreathingViewModel.swift in Sources */,
 				CD84C8892F0AA98D00A08C84 /* HeartbeatView.swift in Sources */,
 			);
