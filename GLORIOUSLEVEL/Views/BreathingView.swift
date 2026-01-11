@@ -50,9 +50,10 @@ struct BreathingView: View {
 				
 			ZStack {
 				Circle()
-					.stroke(Color.blue, lineWidth: 5)
+					.stroke(Color.blue, lineWidth: 3)
 					.frame(width: 250, height: 250, alignment: .center)
 					.scaleEffect(breathingViewModel.getScale(state: breathingViewModel.currentState))
+					.opacity(breathingViewModel.getOpacity(state: breathingViewModel.currentState))
 					.animation(.easeInOut(duration: Double(breathingViewModel.currentState == BreathingState.initial ? 3 : breathingViewModel.getDuration(state: breathingViewModel.currentState))), value: breathingViewModel.currentState)
 				
 				VStack {
@@ -60,11 +61,11 @@ struct BreathingView: View {
 						.font(.title2)
 						.bold()
 						.multilineTextAlignment(.center)
-					
-					if breathingViewModel.currentState != .initial {
-						Text(breathingViewModel.timeRemaining, format: .number)
-							.font(.system(size: 48, weight: .semibold))
-					}
+
+					Text(breathingViewModel.timeRemaining, format: .number)
+						.font(.system(size: 48, weight: .semibold))
+					Text("s")
+						.font(.subheadline)
 				}
 			}
 			.frame(width: 300, height: 300, alignment: .center)
