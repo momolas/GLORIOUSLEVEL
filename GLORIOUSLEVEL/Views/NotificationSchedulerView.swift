@@ -36,13 +36,13 @@ enum WeekDay: Int, CaseIterable {
 
 	var calendarWeekday: Int {
 		switch self {
-			case .lundi: return 2
-			case .mardi: return 3
-			case .mercredi: return 4
-			case .jeudi: return 5
-			case .vendredi: return 6
-			case .samedi: return 7
-			case .dimanche: return 1
+			case .lundi: return 1
+			case .mardi: return 2
+			case .mercredi: return 3
+			case .jeudi: return 4
+			case .vendredi: return 5
+			case .samedi: return 6
+			case .dimanche: return 7
 		}
 	}
 }
@@ -135,7 +135,7 @@ struct NotificationSchedulerView: View {
 					List {
 						ForEach(notificationManager.reminders) { reminder in
 							HStack {
-								Text(reminder.date.formatted(.dateTime.weekday(.wide).hour().minute()))
+								Text("\(WeekDay(rawValue: Calendar.current.component(.weekday, from: reminder.date))?.fullName ?? ""), \(reminder.date, format: .dateTime.hour().minute())")
 								Spacer()
 								Button("Supprimer", systemImage: "trash") {
 									notificationManager.removeNotification(reminder)

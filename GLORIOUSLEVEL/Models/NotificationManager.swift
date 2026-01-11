@@ -44,8 +44,8 @@ class NotificationManager {
 	// Planifie une notification pour une date donnée
 	func scheduleNotification(at date: Date) {
 		let content = UNMutableNotificationContent()
-		content.title = "Exercice de Kegel"
-		content.body = "Il est temps de faire vos exercices de Kegel !"
+		content.title = "Exercice de respiration"
+		content.body = "Il est temps de faire vos exercices de respiration !"
 		content.sound = .default
 
 		let triggerDate = Calendar.current.dateComponents([.weekday, .hour, .minute], from: date)
