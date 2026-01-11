@@ -9,11 +9,6 @@ import Foundation
 import UserNotifications
 import Observation
 
-struct ScheduledReminder: Identifiable, Equatable {
-	let id: String // Correspond à l'identifiant de la notification
-	let date: Date // Représente la combinaison de jour et d'heure
-}
-
 @MainActor
 @Observable
 class NotificationManager {

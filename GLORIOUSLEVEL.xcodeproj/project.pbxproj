@@ -15,6 +15,7 @@
 		CD3B633828EDC33C0046373F /* BreathingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3B633728EDC33C0046373F /* BreathingViewModel.swift */; };
 		CD3B633A28EDC3800046373F /* LaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3B633928EDC3800046373F /* LaunchView.swift */; };
 		CD60B5CB2F13AFDF00A84394 /* NotificationSchedulerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD60B5CA2F13AFDF00A84394 /* NotificationSchedulerView.swift */; };
+		CD60B5D12F13DC1100A84394 /* ScheduledReminder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD60B5D02F13DC1100A84394 /* ScheduledReminder.swift */; };
 		CD7CEDE02B03FBD400776270 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD7CEDDF2B03FBD400776270 /* NotificationManager.swift */; };
 		CD84C8892F0AA98D00A08C84 /* HeartbeatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD84C8882F0AA98C00A08C84 /* HeartbeatView.swift */; };
 		CDB21EC328F2F3B9000B6464 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB21EC228F2F3B9000B6464 /* HealthKitManager.swift */; };
@@ -31,6 +32,7 @@
 		CD3B633728EDC33C0046373F /* BreathingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreathingViewModel.swift; sourceTree = "<group>"; };
 		CD3B633928EDC3800046373F /* LaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchView.swift; sourceTree = "<group>"; };
 		CD60B5CA2F13AFDF00A84394 /* NotificationSchedulerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSchedulerView.swift; sourceTree = "<group>"; };
+		CD60B5D02F13DC1100A84394 /* ScheduledReminder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduledReminder.swift; sourceTree = "<group>"; };
 		CD7CEDDF2B03FBD400776270 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		CD84C8882F0AA98C00A08C84 /* HeartbeatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartbeatView.swift; sourceTree = "<group>"; };
 		CDB21EC228F2F3B9000B6464 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
@@ -99,6 +101,7 @@
 		CD3B633328EDAC850046373F /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				CD60B5D02F13DC1100A84394 /* ScheduledReminder.swift */,
 				CD3B633728EDC33C0046373F /* BreathingViewModel.swift */,
 				CDB21EC228F2F3B9000B6464 /* HealthKitManager.swift */,
 				CD7CEDDF2B03FBD400776270 /* NotificationManager.swift */,
@@ -177,6 +180,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CD3B632628EDAC730046373F /* BreathingView.swift in Sources */,
+				CD60B5D12F13DC1100A84394 /* ScheduledReminder.swift in Sources */,
 				CD0B029129708FC5007145B4 /* SettingsView.swift in Sources */,
 				CD7CEDE02B03FBD400776270 /* NotificationManager.swift in Sources */,
 				CDB21EC328F2F3B9000B6464 /* HealthKitManager.swift in Sources */,

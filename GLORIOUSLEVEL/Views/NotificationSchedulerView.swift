@@ -7,46 +7,6 @@
 
 import SwiftUI
 
-enum WeekDay: Int, CaseIterable {
-	case lundi = 1, mardi, mercredi, jeudi, vendredi, samedi, dimanche
-
-	var abbreviation: String {
-		switch self {
-			case .lundi: return "L"
-			case .mardi: return "M"
-			case .mercredi: return "M"
-			case .jeudi: return "J"
-			case .vendredi: return "V"
-			case .samedi: return "S"
-			case .dimanche: return "D"
-		}
-	}
-
-	var fullName: String {
-		switch self {
-			case .lundi: return "Lundi"
-			case .mardi: return "Mardi"
-			case .mercredi: return "Mercredi"
-			case .jeudi: return "Jeudi"
-			case .vendredi: return "Vendredi"
-			case .samedi: return "Samedi"
-			case .dimanche: return "Dimanche"
-		}
-	}
-
-	var calendarWeekday: Int {
-		switch self {
-			case .lundi: return 1
-			case .mardi: return 2
-			case .mercredi: return 3
-			case .jeudi: return 4
-			case .vendredi: return 5
-			case .samedi: return 6
-			case .dimanche: return 7
-		}
-	}
-}
-
 struct NotificationSchedulerView: View {
 	@Environment(\.dismiss) var dismiss
 	var notificationManager: NotificationManager
