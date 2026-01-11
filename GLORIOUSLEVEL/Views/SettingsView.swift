@@ -17,8 +17,7 @@ struct SettingsView: View {
 	var healthkitManager: HealthKitManager
 	
 	@Binding var showSettingsView: Bool
-	@State var showTimePickerModal = false
-	@State private var newReminderDate = Date()
+	@State var showNotificationScheduler = false
 	
 	@AppStorage("reduce_haptics") var reduceHaptics = false
 	@AppStorage("tense_time") var tenseTime = TimeConstants.defaultTensionTime
@@ -92,40 +91,11 @@ struct SettingsView: View {
 						}
 					}
 					
-					HStack {
-						Toggle(
-							isOn: $notificationManager.isReminder,
-							label: {
-								Label("Rappels", systemImage: "clock")
-									.foregroundStyle(.white)
-							}
-						)
-                        .onChange(of: notificationManager.isReminder) { _, newValue in
-                            if newValue {
-                                Task {
-                                    await notificationManager.requestPermission()
-                                    notificationManager.scheduleNotification()
-                                }
-                            } else {
-                                notificationManager.cancelNotification()
-                            }
-                        }
-					}
-					
-                    if notificationManager.isReminder {
-                        ForEach(notificationManager.reminders, id: \.self) { reminder in
-                            Text(reminder)
-                        }
-                        .onDelete { indexSet in
-                            notificationManager.reminders.remove(atOffsets: indexSet)
-                            notificationManager.scheduleNotification()
-                        }
-
-                        Button(action: {
-                            self.showTimePickerModal.toggle()
-                        }, label: {
-                            Text("Ajouter un rappel")
-                        })
+                    Button(action: {
+                        self.showNotificationScheduler.toggle()
+                    }) {
+                        Label("Gérer les rappels", systemImage: "clock")
+                            .foregroundStyle(.white)
                     }
 					
 					Button(action: {
@@ -163,35 +133,8 @@ struct SettingsView: View {
 					}
 				}
 			}
-            .sheet(isPresented: $showTimePickerModal) {
-                NavigationStack {
-                    VStack {
-                        DatePicker("Heure de rappel", selection: $newReminderDate, displayedComponents: .hourAndMinute)
-                            .datePickerStyle(WheelDatePickerStyle())
-                            .labelsHidden()
-                            .padding()
-
-                        Button("Ajouter") {
-                            let formatter = DateFormatter()
-                            formatter.dateFormat = "hh:mm a"
-                            let timeString = formatter.string(from: newReminderDate)
-                            notificationManager.reminders.append(timeString)
-                            notificationManager.scheduleNotification()
-                            showTimePickerModal = false
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .padding()
-                    }
-                    .navigationTitle("Ajouter un rappel")
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Annuler") {
-                                showTimePickerModal = false
-                            }
-                        }
-                    }
-                }
-                .presentationDetents([.medium])
+            .sheet(isPresented: $showNotificationScheduler) {
+                NotificationSchedulerView(notificationManager: notificationManager)
             }
 		}
 	}
