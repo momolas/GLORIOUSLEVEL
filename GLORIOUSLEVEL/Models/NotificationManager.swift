@@ -1,134 +1,124 @@
 //
-//  NotificationManager.swift
-//  GLORIOUSLEVEL
+//  ScheduleReminder.swift
+//  TEST#4
 //
-//  Created by Mo on 14/11/2023.
+//  Created by Mo on 26/11/2024.
 //
 
 import Foundation
 import UserNotifications
 import Observation
 
-struct Reminder: Identifiable, Codable {
-    var id: UUID = UUID()
-    var date: Date
-    var days: [Int] // 1 = Sunday, 2 = Monday, etc.
+struct ScheduledReminder: Identifiable, Equatable {
+	let id: String // Correspond à l'identifiant de la notification
+	let date: Date // Représente la combinaison de jour et d'heure
 }
 
-@Observable
 @MainActor
+@Observable
 class NotificationManager {
-	
-	var reminders: [Reminder] {
-		didSet {
-            if let encoded = try? JSONEncoder().encode(reminders) {
-                UserDefaults.standard.set(encoded, forKey: "reminders_v2")
-            }
-		}
-	}
+	var reminders: [ScheduledReminder] = []
 	
 	init() {
-        if let data = UserDefaults.standard.data(forKey: "reminders_v2"),
-           let decoded = try? JSONDecoder().decode([Reminder].self, from: data) {
-            self.reminders = decoded
-        } else {
-            self.reminders = []
-        }
-	}
-	
-	func requestPermission() async {
-		let options: UNAuthorizationOptions = [.alert, .badge, .sound, .provisional]
-		do {
-			let granted = try await UNUserNotificationCenter.current().requestAuthorization(options: options)
-			if granted {
-				print("authorization granted")
-			}
-		} catch {
-			print(error.localizedDescription)
+		Task {
+			await loadScheduledNotifications()
 		}
 	}
-
-    func scheduleWeeklyReminders(for days: [WeekDay], at time: Date) -> Int {
-        var count = 0
-        let calendar = Calendar.current
-        let hour = calendar.component(.hour, from: time)
-        let minute = calendar.component(.minute, from: time)
-
-        // Convert Day enum (1=Mon) to Calendar weekday (2=Mon) logic if needed,
-        // but Day enum says 1=Monday. Calendar 1=Sunday usually.
-        // Let's rely on the Day struct provided later.
-        // Assuming the Day enum is passed in, we extract raw values.
-
-        let dayInts = days.map { $0.calendarWeekday }
-
-        // Check if a similar reminder already exists
-        let exists = reminders.contains { reminder in
-            let rHour = calendar.component(.hour, from: reminder.date)
-            let rMinute = calendar.component(.minute, from: reminder.date)
-            // Check if sets of days overlap significantly or are identical?
-            // User requirement: "Les rappels sélectionnés existent déjà" logic suggests checking exact duplicates or overlap.
-            // Let's assume we just add new ones for now, but the View logic "count == 0" implies we return 0 if nothing added.
-            // Simplified check: exact match of time and days.
-            return rHour == hour && rMinute == minute && Set(reminder.days) == Set(dayInts)
-        }
-
-        if exists { return 0 }
-
-        let newReminder = Reminder(date: time, days: dayInts)
-        reminders.append(newReminder)
-
-        Task {
-            await scheduleNotification(for: newReminder)
-        }
-
-        return 1
-    }
-
-    func removeNotification(_ reminder: Reminder) {
-        if let index = reminders.firstIndex(where: { $0.id == reminder.id }) {
-            reminders.remove(at: index)
-            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminder.id.uuidString])
-            // Also need to remove individual weekday scheduled items if we used separate requests?
-            // If we schedule one request per weekday, we need to track IDs better.
-            // Strategy: use UUID + weekday as ID.
-            let identifiers = reminder.days.map { "\(reminder.id.uuidString)-\($0)" }
-            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
-        }
-    }
-
-    func removeAllNotifications() {
-        reminders.removeAll()
-        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-    }
 	
-	private func scheduleNotification(for reminder: Reminder) async {
-        await requestPermission()
+	// Demande l'autorisation d'envoyer des notifications
+	func requestAuthorization() {
+		Task {
+			do {
+				let granted = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])
+				if granted {
+					print("Autorisation accordée.")
+				} else {
+					print("Autorisation refusée.")
+				}
+			} catch {
+				print("Erreur lors de la demande d'autorisation : \(error.localizedDescription)")
+			}
+		}
+	}
+	
+	// Planifie une notification pour une date donnée
+	func scheduleNotification(at date: Date) {
+		let content = UNMutableNotificationContent()
+		content.title = "Exercice de Kegel"
+		content.body = "Il est temps de faire vos exercices de Kegel !"
+		content.sound = .default
 
-        let calendar = Calendar.current
-        let hour = calendar.component(.hour, from: reminder.date)
-        let minute = calendar.component(.minute, from: reminder.date)
+		let triggerDate = Calendar.current.dateComponents([.weekday, .hour, .minute], from: date)
+		let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: true) // Répétitions activées
 
-        for weekday in reminder.days {
-            var dateComponents = DateComponents()
-            dateComponents.hour = hour
-            dateComponents.minute = minute
-            dateComponents.weekday = weekday // 1=Sunday, 2=Monday...
+		let identifier = UUID().uuidString
+		let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
 
-            let content = UNMutableNotificationContent()
-            content.title = "Respirez"
-            content.body = "C'est l'heure de votre session de respiration."
-            content.sound = .default
+		Task {
+			do {
+				try await UNUserNotificationCenter.current().add(request)
+				self.reminders.append(ScheduledReminder(id: identifier, date: date))
+				print("Notification planifiée pour \(date)")
+			} catch {
+				print("Erreur lors de la planification de la notification : \(error.localizedDescription)")
+			}
+		}
+	}
+	
+	// Planification des rappels hebdomadaires
+	@discardableResult
+	func scheduleWeeklyReminders(for selectedDays: [WeekDay], at selectedTime: Date) -> Int {
+		let calendar = Calendar.current
+		let timeComponents = calendar.dateComponents([.hour, .minute], from: selectedTime)
+		var scheduledCount = 0
 
-            let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-            // Unique ID per weekday for this reminder
-            let id = "\(reminder.id.uuidString)-\(weekday)"
-            let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
+		for day in selectedDays {
+			// Vérifier si un rappel existe déjà pour ce jour et cette heure
+			let alreadyExists = reminders.contains { reminder in
+				let reminderComponents = calendar.dateComponents([.weekday, .hour, .minute], from: reminder.date)
+				return reminderComponents.weekday == day.calendarWeekday &&
+					   reminderComponents.hour == timeComponents.hour &&
+					   reminderComponents.minute == timeComponents.minute
+			}
 
-            do {
-                try await UNUserNotificationCenter.current().add(request)
-            } catch {
-                print("Error scheduling: \(error)")
-            }
-        }
+			if alreadyExists {
+				print("Rappel déjà existant pour \(day.fullName) à \(selectedTime.formatted(date: .omitted, time: .shortened))")
+				continue
+			}
+
+			var components = DateComponents()
+			components.hour = timeComponents.hour
+			components.minute = timeComponents.minute
+			components.weekday = day.calendarWeekday
+
+			if let reminderDate = calendar.nextDate(after: Date(), matching: components, matchingPolicy: .nextTimePreservingSmallerComponents) {
+				scheduleNotification(at: reminderDate)
+				scheduledCount += 1
+			}
+		}
+		return scheduledCount
+	}
+
+	// Charge les notifications déjà planifiées
+	private func loadScheduledNotifications() async {
+		let requests = await UNUserNotificationCenter.current().pendingNotificationRequests()
+		let reminders = requests.compactMap { request -> ScheduledReminder? in
+			guard let trigger = request.trigger as? UNCalendarNotificationTrigger else { return nil }
+			guard let date = Calendar.current.date(from: trigger.dateComponents) else { return nil }
+			return ScheduledReminder(id: request.identifier, date: date)
+		}
+		self.reminders = reminders.sorted { $0.date < $1.date }
+	}
+
+	// Supprime toutes les notifications
+	func removeAllNotifications() {
+		UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+		self.reminders.removeAll()
+	}
+
+	// Supprime une notification spécifique
+	func removeNotification(_ reminder: ScheduledReminder) {
+		UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminder.id])
+		self.reminders.removeAll { $0.id == reminder.id }
 	}
 }
