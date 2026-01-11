@@ -46,6 +46,15 @@ struct BreathingView: View {
 			
 			Spacer()
 			Spacer()
+
+			if breathingViewModel.HKManager.currentHeartRate > 0 {
+				Text("\(Int(breathingViewModel.HKManager.currentHeartRate)) BPM")
+					.font(.title3)
+					.fontWeight(.semibold)
+					.fontDesign(.rounded)
+					.foregroundStyle(.secondary)
+					.padding(.bottom, 10)
+			}
 				
 			ZStack {
 				Circle()
