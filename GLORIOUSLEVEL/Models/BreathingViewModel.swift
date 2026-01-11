@@ -247,6 +247,7 @@ class BreathingViewModel {
 					currentState = .initial
 					stopTimer()
 					sendHeavyFeedback()
+					HKManager.stopHeartRateQuery()
 					return
 				case .initial:
 					return
@@ -270,10 +271,12 @@ class BreathingViewModel {
 			timeRemaining = getDuration(state: currentState)
 			cycleRemaining = cycleNumber
 			startTimer()
+			HKManager.startHeartRateQuery()
 		} else {
 			currentState = .initial
 			timeRemaining = 0
 			stopTimer()
+			HKManager.stopHeartRateQuery()
 		}
 	}
 	
@@ -332,16 +335,17 @@ class BreathingViewModel {
         }
     }
 
-    private func completeCycle() {
-        cycleRemaining -= 1
-        if cycleRemaining == 0 {
-            currentState = .initial
-            stopTimer()
-            sendHeavyFeedback()
-        } else {
-            currentState = .inhaling
-        }
-    }
+	private func completeCycle() {
+		cycleRemaining -= 1
+		if cycleRemaining == 0 {
+			currentState = .initial
+			stopTimer()
+			sendHeavyFeedback()
+			HKManager.stopHeartRateQuery()
+		} else {
+			currentState = .inhaling
+		}
+	}
 
 	@MainActor deinit {
 		timerTask?.cancel()

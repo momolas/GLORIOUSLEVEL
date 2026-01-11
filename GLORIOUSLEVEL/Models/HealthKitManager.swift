@@ -62,4 +62,56 @@ class HealthKitManager {
 			// print("Error \(error)")
 		}
 	}
+
+    // MARK: - Heart Rate
+
+    var currentHeartRate: Double = 0
+    private var heartRateQuery: HKQuery?
+
+    func startHeartRateQuery() {
+        guard isHealthKitAvailable(),
+              let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else { return }
+
+        let startDate = Date()
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: nil, options: .strictStartDate)
+
+        let query = HKAnchoredObjectQuery(
+            type: heartRateType,
+            predicate: predicate,
+            anchor: nil,
+            limit: HKObjectQueryNoLimit
+        ) { [weak self] query, samples, _, _, _ in
+            Task {
+                await self?.processHeartRateSamples(samples, from: query)
+            }
+        }
+
+        query.updateHandler = { [weak self] query, samples, _, _, _ in
+            Task {
+                await self?.processHeartRateSamples(samples, from: query)
+            }
+        }
+
+        healthStore?.execute(query)
+        heartRateQuery = query
+    }
+
+    func stopHeartRateQuery() {
+        if let query = heartRateQuery {
+            healthStore?.stop(query)
+            heartRateQuery = nil
+        }
+        currentHeartRate = 0
+    }
+
+    private func processHeartRateSamples(_ samples: [HKSample]?, from query: HKQuery) async {
+        guard query == self.heartRateQuery,
+              let samples = samples as? [HKQuantitySample],
+              let lastSample = samples.last else {
+            return
+        }
+
+        let heartRate = lastSample.quantity.doubleValue(for: HKUnit.count().unitDivided(by: HKUnit.minute()))
+        self.currentHeartRate = heartRate
+    }
 }
