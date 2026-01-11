@@ -15,6 +15,8 @@ enum BreathingPlan: String, CaseIterable {
 	case m365 = "365"
 	case m4x4 = "4x4"
     case nox = "NOx"
+    case recovery = "Recovery"
+    case light = "Light"
 	
 	var description: String {
 		switch self {
@@ -26,6 +28,10 @@ enum BreathingPlan: String, CaseIterable {
 			return "Méthode 4x4"
         case .nox:
             return "Méthode NOx"
+        case .recovery:
+            return "Buteyko Récupération"
+        case .light:
+            return "Buteyko Léger"
 		}
 	}
 	
@@ -54,6 +60,12 @@ enum BreathingPlan: String, CaseIterable {
         case .nox:
             // NOx: Inhale 4, Hold 4, Exhale 6, Hold 2.
             return BreathingTimes(inhale: 4, holdFull: 4, exhale: 6, holdEmpty: 2, reps: 6)
+        case .recovery:
+            // Recovery: Inhale 5, Exhale 5 (Relaxed breathing) -> Hold 5 (Pinch nose).
+            return BreathingTimes(inhale: 5, holdFull: 0, exhale: 5, holdEmpty: 5, reps: 20)
+        case .light:
+            // Light: Inhale 4, Exhale 6. Gentle reduced breathing.
+            return BreathingTimes(inhale: 4, holdFull: 0, exhale: 6, holdEmpty: 0, reps: 30)
 		}
 	}
 }
@@ -87,31 +99,35 @@ enum BreathingState: CaseIterable {
 @MainActor
 class BreathingViewModel {
 	
-	var breathingState: BreathingState = .initial
 	var breathingPlan: BreathingPlan = .m365
 	var currentState: BreathingState = .initial
-	var previousState: BreathingState = .initial
 	
 	var breathingMessage: String {
 		switch currentState {
 			case .initial:
 				return "Commençons !"
 			case .inhaling:
+                if breathingPlan == .light || breathingPlan == .recovery {
+                    return "Inspirez (Normal)"
+                }
 				return "Inspirez"
 			case .exhaling:
                 if breathingPlan == .nox {
                     return "Expirez (Mmm)"
                 }
+                if breathingPlan == .light || breathingPlan == .recovery {
+                    return "Expirez (Normal)"
+                }
 				return "Expirez"
 			case .holdFull, .holdEmpty:
+                if breathingPlan == .recovery && currentState == .holdEmpty {
+                    return "Pincez le nez !"
+                }
 				return "Bloquez !"
             case .holding: // Legacy fallback if needed, but I removed it from enum
                 return "Bloquez !"
 		}
 	}
-	
-	
-	var isVibration: Bool = true
 	
 	var inhaleTime : Int {
 		breathingPlan.details.inhale
@@ -167,16 +183,23 @@ class BreathingViewModel {
 	
 	func getScale(state: BreathingState) -> Double {
 		switch state {
-		case .inhaling:
-			return 3
-        case .holdFull:
-            return 3
-		case .exhaling:
-			return 0.7
-        case .holdEmpty:
-            return 0.7
-        case .holding:
-            return 1.0
+		case .inhaling, .holdFull:
+			return 1.2
+		case .exhaling, .holdEmpty:
+			return 0.8
+		case .holding:
+			return 1.0
+		default:
+			return 0.8
+		}
+	}
+
+	func getOpacity(state: BreathingState) -> Double {
+		switch state {
+		case .inhaling, .holdFull:
+			return 0.3
+		case .exhaling, .holdEmpty:
+			return 1.0
 		default:
 			return 1.0
 		}
@@ -223,47 +246,8 @@ class BreathingViewModel {
 			sendHeavyFeedback()
 			
 			switch breathingPlan {
-			case .m4x4, .nox: // Same cycle structure: Inhale -> HoldFull -> Exhale -> HoldEmpty
-				switch currentState {
-				case .inhaling:
-					currentState = .holdFull
-				case .holdFull:
-                    currentState = .exhaling
-				case .exhaling:
-					currentState = .holdEmpty
-				case .holdEmpty:
-                    cycleRemaining -= 1
-                    if cycleRemaining == 0 {
-                        currentState = .initial
-                        stopTimer()
-                        sendHeavyFeedback()
-                        return
-                    } else {
-                        currentState = .inhaling
-                    }
-				case .initial:
-					return
-                default: break
-				}
-				
-			case .m365:
-				switch currentState {
-				case .inhaling:
-					currentState = .exhaling
-				case .exhaling:
-					cycleRemaining -= 1
-					if cycleRemaining == 0 {
-						currentState = .initial
-						stopTimer()
-						sendHeavyFeedback()
-						return
-					} else {
-						currentState = .inhaling
-					}
-				case .initial:
-					return
-                default: break
-				}
+			case .m4x4, .nox, .recovery, .m365, .light:
+                advanceState()
 				
 			case .mwh:
                 // Inhale -> Exhale -> (repeat) -> HoldEmpty (long) -> Finish
@@ -342,6 +326,40 @@ class BreathingViewModel {
 		}
 		mindfulSessionDuration = 0
 	}
+
+    private func advanceState() {
+        switch currentState {
+        case .inhaling:
+            if holdFullTime > 0 {
+                currentState = .holdFull
+            } else {
+                currentState = .exhaling
+            }
+        case .holdFull:
+            currentState = .exhaling
+        case .exhaling:
+            if holdEmptyTime > 0 {
+                currentState = .holdEmpty
+            } else {
+                completeCycle()
+            }
+        case .holdEmpty:
+            completeCycle()
+        default:
+            break
+        }
+    }
+
+    private func completeCycle() {
+        cycleRemaining -= 1
+        if cycleRemaining == 0 {
+            currentState = .initial
+            stopTimer()
+            sendHeavyFeedback()
+        } else {
+            currentState = .inhaling
+        }
+    }
 
 	@MainActor deinit {
 		timerTask?.cancel()
