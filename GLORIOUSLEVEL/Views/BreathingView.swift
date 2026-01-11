@@ -31,6 +31,8 @@ struct BreathingView: View {
 			
 			Text(breathingPlanSelection.description)
 				.font(.largeTitle)
+				.fontWeight(.light)
+				.fontDesign(.rounded)
 			
 			Picker(selection: $breathingPlanSelection, label: Text("Sélectionnez un plan")) {
 				ForEach(BreathingPlan.allCases, id: \.self) { plan in
